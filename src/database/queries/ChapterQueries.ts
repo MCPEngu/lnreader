@@ -10,7 +10,6 @@ import {
   asc,
   count,
   like,
-  or,
   gt,
   lt,
 } from 'drizzle-orm';
@@ -25,7 +24,6 @@ import { chapterSchema, novelSchema } from '@database/schema';
 import NativeFile from '@specs/NativeFile';
 import { ChapterFilterKey, ChapterOrderKey } from '@database/constants';
 import { chapterFilterToSQL, chapterOrderToSQL } from '@database/utils/parser';
-import { castInt } from '@database/manager/manager';
 
 // #region Mutations
 
@@ -302,10 +300,11 @@ export const clearUpdates = async (): Promise<void> => {
 
 export const getCustomPages = async (novelId: number) => {
   return await dbManager
-    .selectDistinct({ page: chapterSchema.page })
+    .select({ page: chapterSchema.page })
     .from(chapterSchema)
     .where(eq(chapterSchema.novelId, novelId))
-    .orderBy(asc(castInt(chapterSchema.page)))
+    .groupBy(chapterSchema.page)
+    .orderBy(asc(sql`MIN(${chapterSchema.position})`))
     .all();
 };
 
@@ -493,19 +492,10 @@ export const getPrevChapter = async (
     .where(
       and(
         eq(chapterSchema.novelId, novelId),
-        or(
-          and(
-            eq(chapterSchema.page, castInt(page)),
-            lt(chapterSchema.position, castInt(chapterPosition)),
-          ),
-          lt(chapterSchema.page, castInt(page)),
-        ),
+        lt(chapterSchema.position, chapterPosition),
       ),
     )
-    .orderBy(
-      desc(castInt(chapterSchema.page)),
-      desc(castInt(chapterSchema.position)),
-    )
+    .orderBy(desc(chapterSchema.position))
     .get();
 
 export const getNextChapter = async (
@@ -519,22 +509,10 @@ export const getNextChapter = async (
     .where(
       and(
         eq(chapterSchema.novelId, novelId),
-        or(
-          and(
-            eq(chapterSchema.page, castInt(page)),
-            gt(chapterSchema.position, castInt(chapterPosition)),
-          ),
-          and(
-            gt(chapterSchema.page, castInt(page)),
-            eq(chapterSchema.position, 0),
-          ),
-        ),
+        gt(chapterSchema.position, chapterPosition),
       ),
     )
-    .orderBy(
-      asc(castInt(chapterSchema.page)),
-      asc(castInt(chapterSchema.position)),
-    )
+    .orderBy(asc(chapterSchema.position))
     .get();
 
 const getReadDownloadedChapters = async () =>
