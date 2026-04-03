@@ -2,6 +2,7 @@ import { ReaderTheme } from '@hooks/persisted/useSettings';
 import { MaterialDesignIconName } from '@type/icon';
 
 export const presetReaderThemes: ReaderTheme[] = [
+  { backgroundColor: '#eae4d3', textColor: '#111111' },
   { backgroundColor: '#f5f5fa', textColor: '#111111' },
   { backgroundColor: '#F7DFC6', textColor: '#593100' },
   { backgroundColor: '#dce5e2', textColor: '#000000' },
@@ -40,4 +41,10 @@ export const readerFonts: Font[] = [
   { fontFamily: 'lato', name: 'Lato' },
   { fontFamily: 'pt-serif', name: 'PT Serif' },
   { fontFamily: 'OpenDyslexic3-Regular', name: 'OpenDyslexic' },
+  // Add more fonts
+  { fontFamily: 'Bookerly-Regular', name: 'Bookerly' },
+  { fontFamily: 'georgia', name: 'Georgia' },
+  { fontFamily: 'Literata', name: 'Literata' },
+  { fontFamily: 'Palatino_Linotype', name: 'Palatino' },
+  { fontFamily: 'Times_New_Roman', name: 'Times New Roman' },
 ];
