@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   build-and-release:
-    name: Build & Release Official Beta
+    name: Build & Release Beta
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
