@@ -181,12 +181,16 @@ const NovelDetailsSkeleton = ({ theme }: { theme: ThemeColors }) => {
   return (
     <>
       <Row style={styles.infoRow}>
-        <View style={[styles.infoSkeletonBar, { backgroundColor, width: 130 }]}>
+        <View
+          style={[styles.infoSkeletonBar, styles.w130, { backgroundColor }]}
+        >
           {shimmer}
         </View>
       </Row>
       <Row style={styles.infoRow}>
-        <View style={[styles.infoSkeletonBar, { backgroundColor, width: 180 }]}>
+        <View
+          style={[styles.infoSkeletonBar, styles.w180, { backgroundColor }]}
+        >
           {shimmer}
         </View>
       </Row>
@@ -308,12 +312,14 @@ const NovelInfoHeader = ({
   return (
     <>
       <CoverImage
+        // @ts-expect-error coverSource might be null or undefined
         source={coverSource}
         theme={theme}
         hideBackdrop={hideBackdrop}
       >
         <NovelInfoContainer>
           <NovelThumbnail
+            // @ts-expect-error coverSource might be null or undefined
             source={coverSource}
             theme={theme}
             setCustomNovelCover={
@@ -360,6 +366,7 @@ const NovelInfoHeader = ({
                 <Row style={styles.infoRow}>
                   <MaterialCommunityIcons
                     name={getStatusIcon(
+                      // @ts-expect-error status might be null or undefined
                       novel.id !== 'NO_ID' ? novel.status : undefined,
                     )}
                     size={14}
@@ -368,7 +375,8 @@ const NovelInfoHeader = ({
                   />
                   <NovelInfo theme={theme}>
                     {(novel.id !== 'NO_ID'
-                      ? translateNovelStatus(novel.status)
+                      ? // @ts-expect-error status might be null or undefined
+                        translateNovelStatus(novel.status)
                       : getString('novelScreen.unknownStatus')) +
                       ' • ' +
                       pluginName}
@@ -511,5 +519,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     transform: [{ translateX: '-100%' }],
     width: '60%',
+  },
+  w130: {
+    width: 130,
+  },
+  w180: {
+    width: 180,
   },
 });

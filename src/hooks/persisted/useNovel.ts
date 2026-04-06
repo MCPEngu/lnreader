@@ -277,14 +277,15 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       setFirstUnreadChapter(unread ?? undefined);
     }
   }, [
-    novel,
-    novelPath,
-    settingsFilter,
-    pageIndex,
     pages,
-    pluginId,
-    setChapters,
+    pageIndex,
+    novel,
     settingsSort,
+    settingsFilter,
+    setChapters,
+    novelSettings.filter,
+    pluginId,
+    novelPath,
   ]);
 
   const getNextChapterBatch = useCallback(async () => {
@@ -582,7 +583,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
           // getNovel();
         });
     }
-  }, [getNovel, novel]);
+  }, [getNovel, novel, pages.length]);
 
   useEffect(() => {
     if (novel === undefined || pages.length === 0) {
@@ -599,7 +600,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       .finally(() => {
         setFetching(false);
       });
-  }, [getChapters, novel, novelOrPath]);
+  }, [getChapters, novel, novelOrPath, pages.length]);
 
   // #endregion
 
