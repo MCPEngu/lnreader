@@ -25,7 +25,17 @@ const ReaderSheetPreferenceItem: React.FC<ReaderSheetPreferenceItemProps> = ({
       <Text style={[styles.label, { color: theme.onSurfaceVariant }]}>
         {label}
       </Text>
-      <Suspense fallback={<View style={styles.fallback} />}>
+      <Suspense
+        fallback={
+          <View
+            style={{
+              width: 52,
+              height: 32,
+              borderRadius: 16,
+            }}
+          />
+        }
+      >
         <Switch value={value} onValueChange={onPress} />
       </Suspense>
     </Pressable>
@@ -45,10 +55,5 @@ const styles = StyleSheet.create({
   label: {
     flex: 1,
     paddingRight: 16,
-  },
-  fallback: {
-    width: 52,
-    height: 32,
-    borderRadius: 16,
   },
 });

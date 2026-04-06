@@ -132,7 +132,7 @@ export default function usePlugins() {
 
   const uninstallPlugin = (plugin: PluginItem) => {
     if (lastUsedPlugin?.id === plugin.id) {
-      MMKVStorage.remove(LAST_USED_PLUGIN);
+      MMKVStorage.delete(LAST_USED_PLUGIN);
     }
     if (pinnedPlugins.includes(plugin.id)) {
       setPinnedPlugins(pinnedPlugins.filter(id => id !== plugin.id));

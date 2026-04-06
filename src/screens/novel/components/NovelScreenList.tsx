@@ -228,7 +228,7 @@ const NovelScreenList = ({
         ];
       });
     },
-    [chapters, disableHapticFeedback, setSelected],
+    [chapters, disableHapticFeedback],
   );
 
   const handleDeleteChapter = useCallback(

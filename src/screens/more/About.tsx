@@ -8,13 +8,9 @@ import { MoreHeader } from './components/MoreHeader';
 import { useTheme } from '@hooks/persisted';
 import { List, SafeAreaView } from '@components';
 import { AboutScreenProps } from '@navigators/types';
-import Config from 'react-native-config';
+import { GIT_HASH, RELEASE_DATE, BUILD_TYPE } from '@env';
 import * as Clipboard from 'expo-clipboard';
 import { version } from '../../../package.json';
-
-const GIT_HASH = Config.GIT_HASH;
-const RELEASE_DATE = Config.RELEASE_DATE;
-const BUILD_TYPE = Config.BUILD_TYPE;
 
 const AboutScreen = ({ navigation }: AboutScreenProps) => {
   const theme = useTheme();

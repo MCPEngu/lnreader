@@ -1,5 +1,4 @@
 package com.rajarsheechatterjee.LNReader
-import expo.modules.ExpoReactHostFactory
 
 import android.app.Application
 import android.content.res.Configuration
@@ -7,8 +6,11 @@ import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
+import com.facebook.react.ReactNativeHost
+import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.rajarsheechatterjee.NativeFile.NativePackage
@@ -25,19 +27,27 @@ import okhttp3.dnsoverhttps.DnsOverHttps
 import java.net.InetAddress
 
 class MainApplication : Application(), ReactApplication {
-    override val reactHost: ReactHost by lazy {
-        ExpoReactHostFactory.getDefaultReactHost(
-            context = applicationContext,
-            packageList =
+    override val reactNativeHost: ReactNativeHost =
+        object : DefaultReactNativeHost(this) {
+            override fun getPackages(): List<ReactPackage> =
                 PackageList(this).packages.apply {
                     add(NativePackage())
                     add(NativeTTSMediaControlPackage())
                     add(NativeVolumeButtonListenerPackage())
                     add(NativeZipArchivePackage())
-                },
-        )
-    }
+                }
 
+            override fun getJSMainModuleName(): String = "index"
+
+            override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+
+            override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+            override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
+        }
+
+    override val reactHost: ReactHost
+        get() = getDefaultReactHost(applicationContext, reactNativeHost)
+ 
     override fun onCreate() {
         super.onCreate()
 
