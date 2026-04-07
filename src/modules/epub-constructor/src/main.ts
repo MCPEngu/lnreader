@@ -117,20 +117,17 @@ export default class EpubFile {
       const idRef = sanitizeFileName(chapter.title);
 
       chapter.htmlBody = chapter.htmlBody
-        .replace(/(<img[^>]+src=(?:"|'))(.+?)("|')/gi, (match: string, prefix: string, uri: string, suffix: string) => {
+        .replace(/(?<=<img[^>]+src=(?:"|')).+?(?="|')/gi, (uri: string) => {
           imageIndex++;
           const imageIdRef = `${idRef}_image_${imageIndex}`;
           const fileType = getImageType(uri);
           const path = `OEBPS/images/${imageIdRef}.${fileType}`;
           files.push(createFile(path, uri, true));
           manifest.push(manifestImage('../' + path, fileType));
-          return `${prefix}../../${path}${suffix}`;
+          return `../../${path}`;
         })
         .replace(/&nbsp/g, '')
-        .replace(/<\/img>/g, '') // remove existing closing tags
-        .replace(/<img([^>]+)>/gi, (match, inner) => {
-           return inner.trim().endsWith('/') ? match : `<img${inner} />`;
-        })
+        .replace(/(<img[^>]+>)(?!\s*<\/img>)/g, '$1</img>')
         .replace(/<\/?(?:html|head|body|input)[^>]*>/g, '');
 
       manifest.push(manifestChapter(idRef, chapter.fileName));
