@@ -58,13 +58,13 @@ const EditInfoModal = ({
   const [newGenre, setNewGenre] = useState('');
 
   const removeTag = (t: string) => {
-    setNovelInfo({
-      ...novel,
-      genres: novelInfo.genres
+    setNovelInfo(prev => ({
+      ...prev,
+      genres: prev.genres
         ?.split(',')
         .filter(item => item !== t)
         ?.join(','),
-    });
+    }));
   };
 
   const status = Object.values(NovelStatus);
@@ -94,7 +94,7 @@ const EditInfoModal = ({
                   android_ripple={{
                     color: theme.rippleColor,
                   }}
-                  onPress={() => setNovelInfo({ ...novel, status: item })}
+                  onPress={() => setNovelInfo(prev => ({ ...prev, status: item }))}
                 >
                   <Text
                     style={getStatusChipText(novelInfo.status === item, theme)}
@@ -115,7 +115,7 @@ const EditInfoModal = ({
           numberOfLines={1}
           mode="outlined"
           theme={{ colors: { ...theme } }}
-          onChangeText={text => setNovelInfo({ ...novel, name: text })}
+          onChangeText={text => setNovelInfo(prev => ({ ...prev, name: text }))}
           dense
           style={styles.inputWrapper}
         />
@@ -128,7 +128,7 @@ const EditInfoModal = ({
           numberOfLines={1}
           mode="outlined"
           theme={{ colors: { ...theme } }}
-          onChangeText={text => setNovelInfo({ ...novel, author: text })}
+          onChangeText={text => setNovelInfo(prev => ({ ...prev, author: text }))}
           dense
           style={styles.inputWrapper}
         />
@@ -139,7 +139,7 @@ const EditInfoModal = ({
           numberOfLines={1}
           mode="outlined"
           theme={{ colors: { ...theme } }}
-          onChangeText={text => setNovelInfo({ ...novel, artist: text })}
+          onChangeText={text => setNovelInfo(prev => ({ ...prev, artist: text }))}
           dense
           style={styles.inputWrapper}
         />
@@ -151,7 +151,7 @@ const EditInfoModal = ({
           })}
           numberOfLines={1}
           mode="outlined"
-          onChangeText={text => setNovelInfo({ ...novel, summary: text })}
+          onChangeText={text => setNovelInfo(prev => ({ ...prev, summary: text }))}
           theme={{ colors: { ...theme } }}
           dense
           style={styles.inputWrapper}
