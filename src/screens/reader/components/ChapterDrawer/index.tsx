@@ -37,18 +37,31 @@ const ChapterDrawer = () => {
     fetching,
     batchInformation,
     getNextChapterBatch,
+    loadUpToBatch,
     setPageIndex,
   } = useNovelContext();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { defaultChapterSort } = useAppSettings();
   const listRef = useRef<LegendListRef | null>(null);
-  // ChapterInfo is used via the hooks
 
   const styles = createStylesheet(theme, insets);
 
   const { sort = defaultChapterSort } = novelSettings;
   const listAscending = sort.endsWith('Asc');
+
+  // Auto-load batches if the current chapter is beyond what's loaded
+  useEffect(() => {
+    if (chapters.length === 0 || fetching) return;
+    const chapterIndex = chapters.findIndex(el => el.id === chapter.id);
+    if (chapterIndex === -1 && batchInformation.total > batchInformation.batch) {
+      // Estimate needed batch from chapter position
+      const neededBatch = Math.ceil(((chapter.position ?? 0) + 1) / 300);
+      if (neededBatch > batchInformation.batch) {
+        loadUpToBatch(Math.min(neededBatch, batchInformation.total));
+      }
+    }
+  }, [chapters, chapter.id, chapter.position, fetching, batchInformation, loadUpToBatch]);
 
   const defaultButtonLayout: ButtonsProperties = useMemo(
     () => ({

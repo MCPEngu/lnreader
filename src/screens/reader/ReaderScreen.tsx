@@ -141,22 +141,26 @@ export const ChapterContent = ({
         </View>
       )}
       <ReaderBottomSheetV2 bottomSheetRef={readerSheetRef} />
-      {!hidden ? (
-        <>
-          <ReaderAppbar
-            goBack={navigation.goBack}
-            theme={theme}
-            bookmarked={bookmarked}
-            setBookmarked={setBookmarked}
-          />
-          <ReaderFooter
-            readerSheetRef={readerSheetRef}
-            scrollToStart={scrollToStart}
-            navigation={navigation}
-            openDrawer={openDrawerI}
-          />
-        </>
-      ) : null}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { opacity: hidden ? 0 : 1 },
+        ]}
+        pointerEvents={hidden ? 'none' : 'auto'}
+      >
+        <ReaderAppbar
+          goBack={navigation.goBack}
+          theme={theme}
+          bookmarked={bookmarked}
+          setBookmarked={setBookmarked}
+        />
+        <ReaderFooter
+          readerSheetRef={readerSheetRef}
+          scrollToStart={scrollToStart}
+          navigation={navigation}
+          openDrawer={openDrawerI}
+        />
+      </View>
     </View>
   );
 };
