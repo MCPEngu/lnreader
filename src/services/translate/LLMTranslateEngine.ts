@@ -66,19 +66,21 @@ export class LLMTranslateEngine implements TranslateEngine {
     try {
       const client = this.getClient();
 
-      const response = await client.chat.completions.create({
-        model: this.config.model || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
+      if (!this.config.model) {
+        throw new Error('Model is not specified');
+      }
+
+      const response = await client.responses.create({
+        model: this.config.model,
+        instructions: systemPrompt,
+        input: userPrompt,
       });
 
       if (onProgress) {
         onProgress(50);
       }
 
-      const resultText = response.choices?.[0]?.message?.content || '';
+      const resultText = response.output_text;
 
       const translatedParagraphs = resultText.split(MARKER).map((p: string) => p.trim());
 
