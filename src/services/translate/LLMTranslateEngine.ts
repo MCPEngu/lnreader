@@ -90,6 +90,7 @@ export class LLMTranslateEngine implements TranslateEngine {
 
       return this.adjustCount(translatedParagraphs, texts.length);
     } catch (e: any) {
+      // console.error('LLM Translation failed:', e);
       const message = e?.message || 'Unknown LLM error';
       throw new Error(`LLM Translation failed: ${message}`);
     }

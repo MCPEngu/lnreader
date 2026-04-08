@@ -122,11 +122,13 @@ export interface ChapterReaderSettings {
   epubUseCustomJS: boolean;
 }
 
+export type LLMProviderSupported = 'openai' | 'xai' | 'openrouter' | 'deepseek' | 'gemini' | 'custom';
+
 export interface TranslateSettings {
   engine: 'google-free' | 'llm';
   sourceLang: string;
   targetLang: string;
-  llmProvider: 'openai' | 'openrouter' | 'deepseek' | 'gemini' | 'custom';
+  llmProvider: LLMProviderSupported;
   llmEndpoint: string;
   llmApiKey: string;
   llmModel: string;

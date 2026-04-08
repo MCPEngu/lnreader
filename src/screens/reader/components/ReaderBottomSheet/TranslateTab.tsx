@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTheme, useTranslateSettings } from '@hooks/persisted';
+import type { LLMProviderSupported, TranslateSettings } from '@hooks/persisted/useSettings';
 import { List, Button } from '@components/index';
 import { Portal, Modal, TextInput, Menu } from 'react-native-paper';
 import { supportedLanguagesList } from '@services/translate/TranslateEngine';
@@ -10,10 +11,15 @@ import { LLMTranslateEngine } from '@services/translate/LLMTranslateEngine';
 import { showToast } from '@utils/showToast';
 import { useChapterContext } from '@screens/reader/ChapterContext';
 
-const PROVIDERS = [
+const PROVIDERS: {
+  label: string,
+  value: LLMProviderSupported,
+  endpoint: string,
+}[] = [
   { label: 'OpenAI', value: 'openai', endpoint: 'https://api.openai.com/v1' },
   { label: 'DeepSeek', value: 'deepseek', endpoint: 'https://api.deepseek.com/v1' },
   { label: 'Google Gemini', value: 'gemini', endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai' },
+  { label: 'xAI', value: 'xai', endpoint: 'https://api.x.ai/v1' },
   { label: 'OpenRouter', value: 'openrouter', endpoint: 'https://openrouter.ai/api/v1' },
   { label: 'Custom', value: 'custom', endpoint: '' },
 ];
@@ -213,10 +219,11 @@ const TranslateTab: React.FC = () => {
                     key={p.value}
                     title={p.label}
                     onPress={() => {
-                        setTranslateSettings({ llmProvider: p.value as any });
+                        const updates: Partial<TranslateSettings> = { llmProvider: p.value as any };
                         if (p.endpoint) {
-                           setTranslateSettings({ llmEndpoint: p.endpoint });
+                           updates.llmEndpoint = p.endpoint;
                         }
+                        setTranslateSettings(updates);
                         setProviderMenuVisible(false);
                     }}
                   />
