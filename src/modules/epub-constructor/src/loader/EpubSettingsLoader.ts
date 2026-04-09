@@ -7,25 +7,25 @@ export async function EpubSettingsLoader(
   localOnProgress?: (progress: number) => void,
 ) {
   try {
-    var jsonSettingsFile = file.find(x => x.path.endsWith('.json'));
+    const jsonSettingsFile = file.find(x => x.path.endsWith('.json'));
     if (jsonSettingsFile) {
       return parseJSon(jsonSettingsFile.content) as EpubSettings;
     }
-    var dProgress = 0.01;
+    let dProgress = 0.01;
     localOnProgress?.(dProgress);
-    var epubSettings = { chapters: [] as EpubChapter[] } as EpubSettings;
+    const epubSettings = { chapters: [] as EpubChapter[] } as EpubSettings;
     if (!isValid(file, ['toc.ncx', 'toc.xhtml', '.opf', 'styles.css'])) {
       throw 'This is not a valid Epub file created by this library(epub-constructor)';
     }
 
-    var pageContent =
+    const pageContent =
       file.find(x => x.path.indexOf('.opf') != -1)?.content ?? '';
-    var style =
+    const style =
       file.find(x => x.path.indexOf('styles.css') != -1)?.content ?? '';
-    var chapters = [] as string[] | HTMLElement[];
+    let chapters = [] as string[] | HTMLElement[];
 
     epubSettings.stylesheet = style;
-    var page = undefined as undefined | HTMLElement;
+    let page = undefined as undefined | HTMLElement;
     page = parse(pageContent);
     epubSettings.parameter = page.querySelectorAll('param').map(a => {
       return {
@@ -47,18 +47,18 @@ export async function EpubSettingsLoader(
     }
 
     const len = chapters.length + 1;
-    var index = 0;
+    let index = 0;
     for (let x of chapters) {
       try {
-        var content = '';
-        var chItem = '';
-        var chId = x.getAttribute('idref');
+        let content = '';
+        let chItem = '';
+        const chId = x.getAttribute('idref');
         chItem =
           page
             ?.querySelector("item[id='" + chId + "']")
             ?.getAttribute('href') ?? '';
         content = file.find(x => x.path.indexOf(chItem) != -1)?.content ?? '';
-        var chapter = parse(content);
+        const chapter = parse(content);
         epubSettings.chapters.push({
           parameter: chapter.querySelectorAll('param').map((a: any) => {
             return {
