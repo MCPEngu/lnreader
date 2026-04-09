@@ -4,7 +4,7 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTheme, useTranslateSettings } from '@hooks/persisted';
 import type { LLMProviderSupported, TranslateSettings } from '@hooks/persisted/useSettings';
 import { List, Button } from '@components/index';
-import { Portal, Modal, TextInput, Menu } from 'react-native-paper';
+import { Portal, Modal, TextInput, Menu, Switch } from 'react-native-paper';
 import { supportedLanguagesList } from '@services/translate/TranslateEngine';
 import { getString } from '@strings/translations';
 import { LLMTranslateEngine } from '@services/translate/LLMTranslateEngine';
@@ -87,6 +87,8 @@ const LanguagePickerModal: React.FC<LanguagePickerModalProps> = ({
   );
 };
 
+const REASONING_EFFORTS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh'];
+
 const TranslateTab: React.FC = () => {
   const theme = useTheme();
   const {
@@ -98,6 +100,8 @@ const TranslateTab: React.FC = () => {
     llmApiKey,
     llmModel,
     llmSystemPrompt,
+    llmEnableReasoning,
+    llmReasoningEffort,
     setTranslateSettings: _setTranslateSettings,
   } = useTranslateSettings();
 
@@ -121,6 +125,7 @@ const TranslateTab: React.FC = () => {
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [reasoningEffortMenuVisible, setReasoningEffortMenuVisible] = useState(false);
 
   const getLangLabel = (code: string) => {
     return supportedLanguagesList.find(l => l.value === code)?.label || code;
@@ -285,6 +290,41 @@ const TranslateTab: React.FC = () => {
                 style={[styles.input, { minHeight: 100 }]}
                 theme={{ colors: { primary: theme.primary, background: theme.surface, onSurface: theme.onSurface, onSurfaceVariant: theme.onSurfaceVariant } }}
               />
+
+              <View style={[styles.settingItem, { paddingHorizontal: 0, paddingTop: 0 }]}>
+                <Text style={{ color: theme.onSurface }}>Enable Reasoning</Text>
+                <Switch
+                  value={llmEnableReasoning}
+                  onValueChange={val => setTranslateSettings({ llmEnableReasoning: val })}
+                  color={theme.primary}
+                />
+              </View>
+
+              {llmEnableReasoning && (
+                <Menu
+                  visible={reasoningEffortMenuVisible}
+                  onDismiss={() => setReasoningEffortMenuVisible(false)}
+                  anchor={
+                    <TouchableOpacity
+                      style={[styles.input, styles.dropdown]}
+                      onPress={() => setReasoningEffortMenuVisible(true)}
+                    >
+                      <Text style={{ color: theme.onSurfaceVariant }}>Reasoning Effort</Text>
+                      <Text style={{ color: theme.onSurface }}>{llmReasoningEffort || 'low'}</Text>
+                    </TouchableOpacity>
+                  }>
+                  {REASONING_EFFORTS.map(eff => (
+                    <Menu.Item
+                      key={eff}
+                      title={eff}
+                      onPress={() => {
+                        setTranslateSettings({ llmReasoningEffort: eff as any });
+                        setReasoningEffortMenuVisible(false);
+                      }}
+                    />
+                  ))}
+                </Menu>
+              )}
             </View>
           )}
 

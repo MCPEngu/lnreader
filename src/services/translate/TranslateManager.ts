@@ -12,6 +12,8 @@ export interface TranslateConfig {
   llmApiKey?: string;
   llmModel?: string;
   llmSystemPrompt?: string;
+  llmEnableReasoning?: boolean;
+  llmReasoningEffort?: 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
 }
 
 export class TranslateManager {
@@ -23,6 +25,8 @@ export class TranslateManager {
         apiKey: config.llmApiKey || '',
         model: config.llmModel || '',
         systemPrompt: config.llmSystemPrompt,
+        enableReasoning: config.llmEnableReasoning,
+        reasoningEffort: config.llmReasoningEffort as any,
       });
     }
     return new GoogleTranslateFreeEngine();
@@ -40,28 +44,36 @@ export class TranslateManager {
     const translatableElements = $('p, div, span, h1, h2, h3, h4, h5, h6, li, td, th');
     const textsToTranslate: string[] = [];
     const elementRefs: cheerio.Cheerio<cheerio.AnyNode>[] = [];
+    const elementTypes: ('html' | 'text')[] = [];
+
+    const blockSelectors = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'ul', 'ol', 'blockquote', 'pre', 'table'].join(', ');
 
     translatableElements.each((_, el) => {
       const $el = $(el);
-      // Ensure we only grab direct text to avoid duplicating translation of nested tags like <span> inside <p>.
-      // For simplicity in novels, we can get outer text if no nested structures, or we just translate the inner HTML.
-      // However, translating innerHTML can break formatting tags like <b>, <i> if the engine doesn't support them.
-      // A common approach for reading apps is getting the inner text, translating it, and replacing the inner html,
-      // losing complex inline formats OR strictly translating the HTML string itself.
-      // Here we choose to translate text as inner strings carefully.
       
-      const text = $el.text().trim();
-      if (text.length > 0 && $el.children().length === 0) {
-        textsToTranslate.push(text);
-        elementRefs.push($el);
-      } else if (text.length > 0 && $el.children().length > 0) {
-        // If there are children, maybe just translate the text nodes
+      // Skip if an ancestor is already marked as a full-block translation
+      if ($el.parents('[data-translatable-block="true"]').length > 0) return;
+
+      const hasBlockChildren = $el.children(blockSelectors).length > 0;
+
+      if (!hasBlockChildren) {
+        // Safe to translate the entire inner HTML (preserves <b>, <i>, <ruby>, etc.)
+        const elHtml = $el.html()?.trim();
+        if (elHtml && elHtml.length > 0 && $el.text().trim().length > 0) {
+          textsToTranslate.push(elHtml);
+          elementRefs.push($el);
+          elementTypes.push('html');
+          $el.attr('data-translatable-block', 'true');
+        }
+      } else {
+        // If it possesses block children, we only translate its direct text nodes
         $el.contents().each((__, child) => {
           if (child.type === 'text') {
             const childText = $(child).text().trim();
             if (childText.length > 0) {
               textsToTranslate.push(childText);
               elementRefs.push($(child));
+              elementTypes.push('text');
             }
           }
         });
@@ -81,17 +93,29 @@ export class TranslateManager {
       onProgress
     );
 
-    // Replace text nodes back
+    // Replace properties back
     for (let i = 0; i < elementRefs.length; i++) {
+        const $ref = elementRefs[i];
+        if (elementTypes[i] === 'html') {
+            $ref.removeAttr('data-translatable-block');
+        }
+        
         if (translatedTexts[i] && translatedTexts[i].trim().length > 0) {
-            // Replace text node content
-            if (elementRefs[i][0].type === 'text') {
-                 (elementRefs[i][0] as any).data = translatedTexts[i];
+            if (elementTypes[i] === 'html') {
+                $ref.html(translatedTexts[i]);
+            } else if ($ref[0] && $ref[0].type === 'text') {
+                 ($ref[0] as any).data = translatedTexts[i];
             } else {
-                 elementRefs[i].text(translatedTexts[i]);
+                 $ref.text(translatedTexts[i]);
             }
+        } else {
+          console.warn("Translated text is empty, removing element", $ref);
+          $ref.remove();
         }
     }
+
+    // Clean up any remaining data attributes just in case
+    $('[data-translatable-block]').removeAttr('data-translatable-block');
 
     return $.html();
   }

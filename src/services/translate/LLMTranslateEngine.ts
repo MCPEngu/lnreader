@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { TranslateEngine } from './TranslateEngine';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 
 export interface LLMConfig {
   provider?: 'openai' | 'openrouter' | 'deepseek' | 'gemini' | 'custom';
@@ -8,6 +8,8 @@ export interface LLMConfig {
   apiKey: string;
   model: string;
   systemPrompt?: string;
+  enableReasoning?: boolean;
+  reasoningEffort?: 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
 }
 
 export class LLMTranslateEngine implements TranslateEngine {
@@ -60,11 +62,10 @@ export class LLMTranslateEngine implements TranslateEngine {
     if (!texts.length) return [];
 
     const MARKER = '---PARAGRAPH_BREAK---';
-    const combinedText = texts.join("\n" + MARKER + "\n");
+    const userPrompt = texts.join("\n" + MARKER + "\n");
 
     const defaultSystemPrompt = 'You are a professional translator. Do NOT add any extra notes or conversational text. Maintain paragraph structural integrity by keeping the exact same ---PARAGRAPH_BREAK--- markers between translated paragraphs.';
     const systemPrompt = (this.config.systemPrompt || defaultSystemPrompt) + `\nTranslate the following text from ${source} to ${target}`;
-    const userPrompt = combinedText;
 
     let i: any;
 
@@ -78,18 +79,50 @@ export class LLMTranslateEngine implements TranslateEngine {
         if (Math.random() > 0.5 && progress < 96 && onProgress) {
           onProgress(progress++);
         }
-      }, 500);
+      }, 333);
 
       let resultText = '';
 
+      console.log("Input", texts, userPrompt);
+
       if (this.config.provider === 'gemini') {
         const ai = new GoogleGenAI({ apiKey: this.config.apiKey });
+        const configOptions: any = {
+          systemInstruction: systemPrompt,
+          thinkingConfig: {
+            thinkingLevel: ThinkingLevel.THINKING_LEVEL_UNSPECIFIED,
+          }
+        };
+        if (this.config.enableReasoning) {
+          switch (this.config.reasoningEffort) {
+            case 'none': {
+              configOptions.thinkingConfig.thinkingLevel = ThinkingLevel.THINKING_LEVEL_UNSPECIFIED;
+              break;
+            }
+            case 'minimal': {
+              configOptions.thinkingConfig.thinkingLevel = ThinkingLevel.MINIMAL;
+              break;
+            }
+            case 'low': {
+              configOptions.thinkingConfig.thinkingLevel = ThinkingLevel.LOW;
+              break;
+            }
+            case 'medium': {
+              configOptions.thinkingConfig.thinkingLevel = ThinkingLevel.MEDIUM;
+              break;
+            }
+            case 'high':
+            case 'xhigh': {
+              configOptions.thinkingConfig.thinkingLevel = ThinkingLevel.HIGH;
+              break;
+            }
+          }
+        }
+
         const response = await ai.models.generateContent({
           model: this.config.model,
           contents: userPrompt,
-          config: {
-            systemInstruction: systemPrompt
-          }
+          config: configOptions,
         });
         resultText = response.text || '';
         console.log("Gemini Response", response);
@@ -99,11 +132,15 @@ export class LLMTranslateEngine implements TranslateEngine {
           apiKey: this.config.apiKey || 'anonymous',
           dangerouslyAllowBrowser: true, // required for React Native client-side
         });
+
         const response = await client.responses.create({
           model: this.config.model,
           instructions: systemPrompt,
           input: userPrompt,
           store: false,
+          reasoning: {
+            effort: this.config.reasoningEffort || "none",
+          }
         });
         resultText = response.output_text;
         console.log("LLM Response", response);
