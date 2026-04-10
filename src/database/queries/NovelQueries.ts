@@ -141,7 +141,7 @@ export const switchNovelToLibraryQuery = async (
         const defaultCategory = await tx
           .select({ id: categorySchema.id })
           .from(categorySchema)
-          .where(eq(categorySchema.sort, 1))
+          .where(eq(categorySchema.id, 1))
           .get();
 
         if (defaultCategory) {
@@ -182,7 +182,7 @@ export const switchNovelToLibraryQuery = async (
         const defaultCategory = await tx
           .select({ id: categorySchema.id })
           .from(categorySchema)
-          .where(eq(categorySchema.sort, 1))
+          .where(eq(categorySchema.id, 1))
           .get();
 
         if (defaultCategory) {
@@ -289,7 +289,7 @@ export const restoreLibrary = async (novel: NovelInfo) => {
       const defaultCategory = await tx
         .select({ id: categorySchema.id })
         .from(categorySchema)
-        .where(eq(categorySchema.sort, 1))
+        .where(eq(categorySchema.id, 1))
         .get();
 
       if (defaultCategory) {
@@ -377,6 +377,9 @@ export const updateNovelCategories = async (
   if (!novelIds.length) return;
 
   await dbManager.write(async tx => {
+    // Ensure novels are in library when added to a category
+    await tx.update(novelSchema).set({ inLibrary: true }).where(inArray(novelSchema.id, novelIds)).run();
+
     // Delete existing categories (keeping local category if present)
     await tx
       .delete(novelCategorySchema)
@@ -402,7 +405,7 @@ export const updateNovelCategories = async (
       const defaultCategory = await tx
         .select({ id: categorySchema.id })
         .from(categorySchema)
-        .where(eq(categorySchema.sort, 1))
+        .where(eq(categorySchema.id, 1))
         .get();
 
       if (defaultCategory) {

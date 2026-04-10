@@ -137,6 +137,11 @@ export const deleteCategoryById = async (category: Category): Promise<void> => {
         .run();
     }
 
+    await tx
+      .delete(novelCategorySchema)
+      .where(eq(novelCategorySchema.categoryId, category.id))
+      .run();
+
     // Delete the category
     await tx
       .delete(categorySchema)

@@ -12,6 +12,7 @@ import { NovelScreenProps } from '@navigators/types';
 import { useTrackedNovel, useTracker } from '@hooks/persisted';
 import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { MaterialDesignIconName } from '@type/icon';
+import { useNovelContext } from '@screens/novel/NovelContext';
 
 const NButton = ({
   onPress,
@@ -72,6 +73,7 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
   const { navigate } = useNavigation<NovelScreenProps['navigation']>();
   const { tracker } = useTracker();
   const { trackedNovel } = useTrackedNovel(novel.id);
+  const { getNovel } = useNovelContext();
 
   const followButtonColor = inLibrary ? theme.primary : theme.outline;
   const trackerButtonColor = trackedNovel ? theme.primary : theme.outline;
@@ -142,9 +144,10 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
       </View>
       {novel.id !== 'NO_ID' && (
         <SetCategoryModal
-          novelIds={[novel.id]}
+          novelIds={[novel.id as number]}
           closeModal={closeSetCategoryModal}
           visible={setCategoryModalVisible}
+          onSuccess={getNovel}
         />
       )}
     </>
