@@ -28,10 +28,9 @@ import {
 } from '@screens/library/constants/constants';
 import { RadioButton } from '@components/RadioButton/RadioButton';
 import { overlay } from 'react-native-paper';
-import { BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import BottomSheet from '@components/BottomSheet/BottomSheet';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
-import { LegendList } from '@legendapp/list';
 
 interface LibraryBottomSheetProps {
   bottomSheetRef: RefObject<BottomSheetModalMethods | null>;
@@ -48,14 +47,10 @@ const FirstRoute = () => {
 
   return (
     <View style={styles.flex}>
-      <LegendList
-        recycleItems
-        estimatedItemSize={4}
-        extraData={[filter]}
-        data={libraryFilterList}
-        keyExtractor={item => `filter_${item.filter}`}
-        renderItem={({ item }) => (
+      <BottomSheetScrollView>
+        {libraryFilterList.map(item => (
           <Checkbox
+            key={`filter_${item.filter}`}
             label={item.label}
             theme={theme}
             status={filter === item.filter}
@@ -68,8 +63,8 @@ const FirstRoute = () => {
               item.filter === LibraryFilter.Downloaded && downloadedOnlyMode
             }
           />
-        )}
-      />
+        ))}
+      </BottomSheetScrollView>
     </View>
   );
 };
@@ -81,14 +76,10 @@ const SecondRoute = () => {
 
   return (
     <View style={styles.flex}>
-      <LegendList
-        recycleItems
-        data={librarySortOrderList}
-        extraData={[sortOrder]}
-        estimatedItemSize={5}
-        keyExtractor={(item, index) => `sort_${index}_${item.ASC}`}
-        renderItem={({ item }) => (
+      <BottomSheetScrollView>
+        {librarySortOrderList.map((item, index) => (
           <SortItem
+            key={`sort_${index}_${item.ASC}`}
             label={item.label}
             theme={theme}
             status={
@@ -104,8 +95,8 @@ const SecondRoute = () => {
               })
             }
           />
-        )}
-      />
+        ))}
+      </BottomSheetScrollView>
     </View>
   );
 };
@@ -121,7 +112,7 @@ const ThirdRoute = () => {
   } = useLibrarySettings();
 
   return (
-    <View style={styles.flex}>
+    <BottomSheetScrollView style={styles.flex}>
       <Text style={[styles.sectionHeader, { color: theme.onSurfaceVariant }]}>
         {getString('libraryScreen.bottomSheet.display.badges')}
       </Text>
@@ -158,22 +149,16 @@ const ThirdRoute = () => {
       <Text style={[styles.sectionHeader, { color: theme.onSurfaceVariant }]}>
         {getString('libraryScreen.bottomSheet.display.displayMode')}
       </Text>
-      <LegendList
-        recycleItems
-        estimatedItemSize={4}
-        data={displayModesList}
-        extraData={[displayMode]}
-        keyExtractor={item => `display_mode_${item.value}`}
-        renderItem={({ item }) => (
-          <RadioButton
-            label={item.label}
-            status={displayMode === item.value}
-            onPress={() => setLibrarySettings({ displayMode: item.value })}
-            theme={theme}
-          />
-        )}
-      />
-    </View>
+      {displayModesList.map(item => (
+        <RadioButton
+          key={`display_mode_${item.value}`}
+          label={item.label}
+          status={displayMode === item.value}
+          onPress={() => setLibrarySettings({ displayMode: item.value })}
+          theme={theme}
+        />
+      ))}
+    </BottomSheetScrollView>
   );
 };
 
