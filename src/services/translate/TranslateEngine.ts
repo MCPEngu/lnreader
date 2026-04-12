@@ -80,5 +80,6 @@ export interface TranslateEngine {
     source: string,
     target: string,
     onProgress?: (progress: number) => void,
+    signal?: AbortSignal,
   ): Promise<string[]>;
 }

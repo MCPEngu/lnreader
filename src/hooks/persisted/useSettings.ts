@@ -141,6 +141,7 @@ export interface TranslateSettings {
   llmSystemPrompt: string;
   llmEnableReasoning: boolean;
   llmReasoningEffort: 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+  autoTranslateNextChapter: boolean;
 }
 
 const initialAppSettings: AppSettings = {
@@ -245,6 +246,7 @@ export const initialTranslateSettings: TranslateSettings = {
     'You are a professional translator. Do NOT add any extra notes or conversational text. Maintain paragraph structural integrity by keeping the exact same ---PARAGRAPH_BREAK--- markers between translated paragraphs.',
   llmEnableReasoning: false,
   llmReasoningEffort: 'low',
+  autoTranslateNextChapter: false,
 };
 
 export const useAppSettings = () => {

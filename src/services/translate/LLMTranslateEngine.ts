@@ -63,6 +63,7 @@ export class LLMTranslateEngine implements TranslateEngine {
     source: string,
     target: string,
     onProgress?: (progress: number) => void,
+    signal?: AbortSignal,
   ): Promise<string[]> {
     if (!texts.length) return [];
 
@@ -76,6 +77,25 @@ export class LLMTranslateEngine implements TranslateEngine {
       `\nTranslate the following text from ${source} to ${target}`;
 
     let i: any;
+
+    // Helper: create a promise that rejects when aborted
+    const createAbortError = () => {
+      const err = new Error('Translation cancelled');
+      err.name = 'AbortError';
+      return err;
+    };
+    const abortPromise = signal
+      ? new Promise<never>((_, reject) => {
+          if (signal.aborted) {
+            reject(createAbortError());
+          }
+          signal.addEventListener(
+            'abort',
+            () => reject(createAbortError()),
+            { once: true },
+          );
+        })
+      : null;
 
     try {
       if (!this.config.model) {
@@ -129,11 +149,14 @@ export class LLMTranslateEngine implements TranslateEngine {
           }
         }
 
-        const response = await ai.models.generateContent({
+        const apiPromise = ai.models.generateContent({
           model: this.config.model,
           contents: userPrompt,
           config: configOptions,
         });
+        const response = abortPromise
+          ? await Promise.race([apiPromise, abortPromise])
+          : await apiPromise;
         resultText = response.text || '';
         console.log('Gemini Response', response);
       } else {
@@ -143,7 +166,7 @@ export class LLMTranslateEngine implements TranslateEngine {
           dangerouslyAllowBrowser: true, // required for React Native client-side
         });
 
-        const response = await client.responses.create({
+        const apiPromise = client.responses.create({
           model: this.config.model,
           instructions: systemPrompt,
           input: userPrompt,
@@ -152,6 +175,9 @@ export class LLMTranslateEngine implements TranslateEngine {
             effort: this.config.reasoningEffort || 'none',
           },
         });
+        const response = abortPromise
+          ? await Promise.race([apiPromise, abortPromise])
+          : await apiPromise;
         resultText = response.output_text;
         console.log('LLM Response', response);
       }
@@ -169,9 +195,13 @@ export class LLMTranslateEngine implements TranslateEngine {
       return this.adjustCount(translatedParagraphs, texts.length);
     } catch (e: any) {
       clearInterval(i);
+      if (e?.name === 'AbortError') {
+        throw e; // Re-throw abort errors without wrapping
+      }
       // console.error('LLM Translation failed:', e);
       const message = e?.message || 'Unknown LLM error';
       throw new Error(`LLM Translation failed: ${message}`);
     }
   }
 }
+

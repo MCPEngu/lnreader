@@ -66,6 +66,20 @@ export default function useChapter(
   const originalChapterText = useRef<string>('');
   const chapterIdRef = useRef<number>(initialChapter.id);
 
+  // --- Background pre-translate state (persists across chapter navigation) ---
+  // Cache: stores the translated HTML for exactly 1 pre-translated chapter
+  const translatedChapterCache = useRef<Map<number, string>>(new Map());
+  // Tracks the AbortController for the current foreground translation
+  const currentTranslateAbort = useRef<AbortController | null>(null);
+  // Tracks the AbortController for the background pre-translation
+  const backgroundTranslateAbort = useRef<AbortController | null>(null);
+  // Tracks which chapter ID is being background-translated
+  const backgroundTranslatingChapterId = useRef<number | null>(null);
+  // A callback ref to update state when background translation finishes for the current chapter
+  const onBackgroundCompleteRef = useRef<
+    ((chapterId: number, html: string) => void) | null
+  >(null);
+
   const [[nextChapter, prevChapter], setAdjacentChapter] = useState<
     ChapterInfo[] | undefined[]
   >([]);
@@ -115,6 +129,15 @@ export default function useChapter(
     };
   }, [useVolumeButtons, chapter, connectVolumeButton]);
 
+  // Cleanup: abort all translations when the hook unmounts (leaving reader)
+  useEffect(() => {
+    return () => {
+      currentTranslateAbort.current?.abort();
+      backgroundTranslateAbort.current?.abort();
+      translatedChapterCache.current.clear();
+    };
+  }, []);
+
   const loadChapterText = useCallback(
     async (id: number, path: string) => {
       const filePath = `${NOVEL_STORAGE}/${novel.pluginId}/${chapter.novelId}/${id}/index.html`;
@@ -131,6 +154,60 @@ export default function useChapter(
       return text;
     },
     [chapter.novelId, novel.pluginId],
+  );
+
+  // --- Background pre-translate helper ---
+  const startBackgroundTranslate = useCallback(
+    (targetChapter: ChapterInfo, rawText: string) => {
+      // Cancel any existing background translation
+      backgroundTranslateAbort.current?.abort();
+
+      const settings =
+        getMMKVObject<TranslateSettings>(TRANSLATE_SETTINGS) ||
+        initialTranslateSettings;
+
+      if (!settings.autoTranslateNextChapter) return;
+
+      const abortCtrl = new AbortController();
+      backgroundTranslateAbort.current = abortCtrl;
+      backgroundTranslatingChapterId.current = targetChapter.id;
+
+      const sanitizedText = sanitizeChapterText(
+        novel.pluginId,
+        novel.name,
+        targetChapter.name,
+        rawText,
+      );
+
+      TranslateManager.translateChapterHTML(
+        sanitizedText,
+        settings as any,
+        undefined, // no progress callback for background
+        abortCtrl.signal,
+      )
+        .then(translatedHtml => {
+          if (abortCtrl.signal.aborted) return;
+
+          // Store in cache (limit to 1 entry)
+          translatedChapterCache.current.clear();
+          translatedChapterCache.current.set(
+            targetChapter.id,
+            translatedHtml,
+          );
+          backgroundTranslatingChapterId.current = null;
+
+          // If the user is currently viewing this chapter, apply translation
+          if (onBackgroundCompleteRef.current) {
+            onBackgroundCompleteRef.current(targetChapter.id, translatedHtml);
+          }
+        })
+        .catch(e => {
+          if (e?.name === 'AbortError') return; // silently ignore cancellation
+          backgroundTranslatingChapterId.current = null;
+          // On error, do NOT continue translating
+        });
+    },
+    [novel.pluginId, novel.name],
   );
 
   const getChapter = useCallback(
@@ -212,22 +289,108 @@ export default function useChapter(
           chapterTextCache.set(chap.id, text);
         }
 
-        setIsTranslated(false);
-        setIsTranslating(false);
-        setTranslateProgress(0);
-        originalChapterText.current = '';
+        // Cancel foreground translation from previous chapter
+        currentTranslateAbort.current?.abort();
+        currentTranslateAbort.current = null;
+
         chapterIdRef.current = chap.id;
 
-        setChapter(chap);
-        setChapterText(
-          sanitizeChapterText(
+        // Check if we have a cached translation for this chapter
+        const cachedTranslation = translatedChapterCache.current.get(chap.id);
+        if (cachedTranslation) {
+          // We have a pre-translated version ready
+          originalChapterText.current = sanitizeChapterText(
             novel.pluginId,
             novel.name,
             chap.name,
             awaitedText,
-          ),
-        );
-        setAdjacentChapter([nextChap!, prevChap!]);
+          );
+          setIsTranslated(true);
+          setIsTranslating(false);
+          setTranslateProgress(100);
+          setChapter(chap);
+          setChapterText(cachedTranslation);
+          setAdjacentChapter([nextChap!, prevChap!]);
+          // Clear the cache entry since we consumed it
+          translatedChapterCache.current.delete(chap.id);
+
+          // If there's a next chapter and autoTranslate is on, pre-translate it
+          if (nextChap) {
+            const nextRawText =
+              chapterTextCache.get(nextChap.id) ??
+              loadChapterText(nextChap.id, nextChap.path);
+            Promise.resolve(nextRawText).then(resolvedText => {
+              if (chapterIdRef.current === chap.id) {
+                startBackgroundTranslate(nextChap!, resolvedText);
+              }
+            });
+          }
+        } else if (backgroundTranslatingChapterId.current === chap.id) {
+          // The background is currently translating this chapter
+          originalChapterText.current = sanitizeChapterText(
+            novel.pluginId,
+            novel.name,
+            chap.name,
+            awaitedText,
+          );
+          setIsTranslating(true);
+          setTranslateProgress(0);
+          setIsTranslated(false);
+          setChapter(chap);
+          setChapterText(
+            sanitizeChapterText(
+              novel.pluginId,
+              novel.name,
+              chap.name,
+              awaitedText,
+            ),
+          );
+          setAdjacentChapter([nextChap!, prevChap!]);
+
+          // Register callback so when background finishes, we apply it
+          onBackgroundCompleteRef.current = (
+            completedChapterId: number,
+            html: string,
+          ) => {
+            if (chapterIdRef.current === completedChapterId) {
+              setChapterText(html);
+              setIsTranslated(true);
+              setIsTranslating(false);
+              setTranslateProgress(100);
+
+              // Pre-translate the next chapter after background completes
+              if (nextChap) {
+                const nextRawText =
+                  chapterTextCache.get(nextChap.id) ??
+                  loadChapterText(nextChap.id, nextChap.path);
+                Promise.resolve(nextRawText).then(resolvedText => {
+                  if (chapterIdRef.current === completedChapterId) {
+                    startBackgroundTranslate(nextChap!, resolvedText);
+                  }
+                });
+              }
+            }
+            onBackgroundCompleteRef.current = null;
+          };
+        } else {
+          // Normal case: no cached translation, not being background-translated
+          setIsTranslated(false);
+          setIsTranslating(false);
+          setTranslateProgress(0);
+          originalChapterText.current = '';
+          onBackgroundCompleteRef.current = null;
+
+          setChapter(chap);
+          setChapterText(
+            sanitizeChapterText(
+              novel.pluginId,
+              novel.name,
+              chap.name,
+              awaitedText,
+            ),
+          );
+          setAdjacentChapter([nextChap!, prevChap!]);
+        }
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -245,6 +408,7 @@ export default function useChapter(
       novel.path,
       novel.totalPages,
       setLoading,
+      startBackgroundTranslate,
     ],
   );
 
@@ -322,7 +486,16 @@ export default function useChapter(
         return;
       }
       if (nextNavChapter) {
-        // setLoading(true);
+        // Cancel any ongoing foreground translation for the current chapter
+        if (currentTranslateAbort.current) {
+          currentTranslateAbort.current.abort();
+          currentTranslateAbort.current = null;
+        }
+        // Reset translation state so the new chapter starts clean
+        setIsTranslating(false);
+        setIsTranslated(false);
+        setTranslateProgress(0);
+        originalChapterText.current = '';
 
         getChapter(nextNavChapter);
       } else {
@@ -369,11 +542,35 @@ export default function useChapter(
   }, [isTranslated]);
 
   const translateChapter = useCallback(async () => {
+    // If currently translating (foreground or background for this chapter), cancel it
+    if (isTranslating) {
+      currentTranslateAbort.current?.abort();
+      currentTranslateAbort.current = null;
+      // Also cancel background if it's translating this chapter
+      if (backgroundTranslatingChapterId.current === chapterIdRef.current) {
+        backgroundTranslateAbort.current?.abort();
+        backgroundTranslateAbort.current = null;
+        backgroundTranslatingChapterId.current = null;
+      }
+      onBackgroundCompleteRef.current = null;
+      setIsTranslating(false);
+      setTranslateProgress(0);
+      // Revert to original text if we had saved it
+      if (originalChapterText.current) {
+        setChapterText(originalChapterText.current);
+      }
+      return;
+    }
+
     // Toggle: if already translated, revert to original
     if (isTranslated) {
       revertTranslation();
       return;
     }
+
+    // Start foreground translation
+    const abortCtrl = new AbortController();
+    currentTranslateAbort.current = abortCtrl;
 
     setIsTranslating(true);
     setTranslateProgress(0);
@@ -390,22 +587,55 @@ export default function useChapter(
         chapterText,
         settings as any,
         progress => setTranslateProgress(progress),
+        abortCtrl.signal,
       );
 
-      if (chapterIdRef.current === translatingChapterId) {
+      if (
+        chapterIdRef.current === translatingChapterId &&
+        !abortCtrl.signal.aborted
+      ) {
         setChapterText(translatedHtml);
         setIsTranslated(true);
+
+        // If autoTranslateNextChapter is on, pre-translate the next chapter
+        if (settings.autoTranslateNextChapter && nextChapter) {
+          const nextRawText =
+            chapterTextCache.get(nextChapter.id) ??
+            loadChapterText(nextChapter.id, nextChapter.path);
+          Promise.resolve(nextRawText).then(resolvedText => {
+            if (chapterIdRef.current === translatingChapterId) {
+              startBackgroundTranslate(nextChapter, resolvedText);
+            }
+          });
+        }
       }
     } catch (e: any) {
+      if (e?.name === 'AbortError') {
+        // Translation was cancelled, do nothing
+        return;
+      }
       if (chapterIdRef.current === translatingChapterId) {
         showToast(e.message);
       }
     } finally {
-      if (chapterIdRef.current === translatingChapterId) {
+      if (
+        chapterIdRef.current === translatingChapterId &&
+        !abortCtrl.signal.aborted
+      ) {
         setIsTranslating(false);
+        currentTranslateAbort.current = null;
       }
     }
-  }, [chapterText, isTranslated, revertTranslation]);
+  }, [
+    chapterText,
+    isTranslated,
+    isTranslating,
+    revertTranslation,
+    nextChapter,
+    chapterTextCache,
+    loadChapterText,
+    startBackgroundTranslate,
+  ]);
 
   return useMemo(
     () => ({

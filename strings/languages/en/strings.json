@@ -493,7 +493,8 @@
         "apiKey": "API Key",
         "modelName": "Model Name",
         "loadModels": "Load Models",
-        "systemPrompt": "System Prompt"
+        "systemPrompt": "System Prompt",
+        "preTranslateNextChapter": "Pre-translate next chapter"
       }
     },
     "drawer": {

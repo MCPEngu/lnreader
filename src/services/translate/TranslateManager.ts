@@ -38,6 +38,7 @@ export class TranslateManager {
     html: string,
     config: TranslateConfig,
     onProgress?: (progress: number) => void,
+    signal?: AbortSignal,
   ): Promise<string> {
     const $ = cheerio.load(html, null, false);
 
@@ -112,6 +113,7 @@ export class TranslateManager {
       config.sourceLang,
       config.targetLang,
       onProgress,
+      signal,
     );
 
     // Replace properties back

@@ -411,6 +411,7 @@ export interface StringMap {
   'readerScreen.bottomSheet.translateTab.modelName': 'string';
   'readerScreen.bottomSheet.translateTab.loadModels': 'string';
   'readerScreen.bottomSheet.translateTab.systemPrompt': 'string';
+  'readerScreen.bottomSheet.translateTab.preTranslateNextChapter': 'string';
   'readerScreen.drawer.scrollToBottom': 'string';
   'readerScreen.drawer.scrollToCurrentChapter': 'string';
   'readerScreen.drawer.scrollToTop': 'string';

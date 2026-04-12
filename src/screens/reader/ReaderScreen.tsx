@@ -16,9 +16,8 @@ import { ChapterContextProvider, useChapterContext } from './ChapterContext';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { useBackHandler } from '@hooks/index';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Drawer } from 'react-native-drawer-layout';
-import color from 'color';
 
 const Chapter = ({ route, navigation }: ChapterScreenProps) => {
   const [open, setOpen] = useState(false);
@@ -84,8 +83,6 @@ export const ChapterContent = ({
     webViewRef,
     hideHeader,
     refetch,
-    isTranslating,
-    translateProgress,
   } = useChapterContext();
 
   const scrollToStart = () =>
@@ -139,25 +136,6 @@ export const ChapterContent = ({
       ) : (
         <View style={styles.container}>
           <WebViewReader onPress={hideHeader} />
-          {isTranslating && (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                styles.translatingOverlay,
-                { backgroundColor: color(theme.surface).alpha(0.8).string() },
-              ]}
-            >
-              <Text
-                style={{
-                  color: theme.onSurface,
-                  fontSize: 18,
-                  fontWeight: 'bold',
-                }}
-              >
-                Translating... {Math.round(translateProgress)}%
-              </Text>
-            </View>
-          )}
         </View>
       )}
       <ReaderBottomSheetV2 bottomSheetRef={readerSheetRef} />
@@ -185,9 +163,4 @@ export default Chapter;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  translatingOverlay: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
 });

@@ -127,6 +127,7 @@ const TranslateTab: React.FC = () => {
     llmSystemPrompt,
     llmEnableReasoning,
     llmReasoningEffort,
+    autoTranslateNextChapter,
     setTranslateSettings: _setTranslateSettings,
   } = useTranslateSettings();
 
@@ -246,6 +247,25 @@ const TranslateTab: React.FC = () => {
               {getLangLabel(targetLang)}
             </Text>
           </TouchableOpacity>
+
+          <View
+            style={[
+              styles.settingItem,
+            ]}
+          >
+            <Text style={[styles.label, { color: theme.onSurface }]}>
+              {getString(
+                'readerScreen.bottomSheet.translateTab.preTranslateNextChapter',
+              )}
+            </Text>
+            <Switch
+              value={autoTranslateNextChapter}
+              onValueChange={val =>
+                setTranslateSettings({ autoTranslateNextChapter: val })
+              }
+              color={theme.primary}
+            />
+          </View>
 
           {engine === 'llm' && (
             <View style={styles.llmConfigSection}>

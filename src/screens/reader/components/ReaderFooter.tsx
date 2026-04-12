@@ -29,7 +29,7 @@ const ChapterFooter = ({
   navigation,
   openDrawer,
 }: ChapterFooterProps) => {
-  const { novel, chapter, nextChapter, prevChapter, navigateChapter } =
+  const { novel, chapter, nextChapter, prevChapter, navigateChapter, isTranslating } =
     useChapterContext();
   const theme = useTheme();
   const rippleConfig = {
@@ -149,11 +149,12 @@ const ChapterFooter = ({
           android_ripple={rippleConfig}
           style={styles.buttonStyles}
           onPress={() => readerSheetRef.current?.present()}
+          disabled={isTranslating}
         >
           <IconButton
             icon="cog-outline"
             size={26}
-            iconColor={theme.onSurface}
+            iconColor={isTranslating ? color(theme.onSurface).alpha(0.38).string() : theme.onSurface}
           />
         </Pressable>
         <Pressable

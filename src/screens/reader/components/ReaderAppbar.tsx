@@ -29,8 +29,14 @@ const ReaderAppbar = ({
   bookmarked,
   setBookmarked,
 }: ReaderAppbarProps) => {
-  const { chapter, novel, translateChapter, isTranslated } =
-    useChapterContext();
+  const {
+    chapter,
+    novel,
+    translateChapter,
+    isTranslated,
+    isTranslating,
+    translateProgress,
+  } = useChapterContext();
   const { statusBarHeight } = useNovelContext();
 
   const entering = () => {
@@ -72,6 +78,18 @@ const ReaderAppbar = ({
     };
   };
 
+  const getTranslateIconName = () => {
+    if (isTranslating) return 'translate';
+    if (isTranslated) return 'translate-off';
+    return 'translate';
+  };
+
+  const getTranslateIconColor = () => {
+    if (isTranslating) return theme.primary;
+    if (isTranslated) return theme.primary;
+    return theme.onSurface;
+  };
+
   return (
     <Animated.View
       entering={entering}
@@ -106,14 +124,37 @@ const ReaderAppbar = ({
             {chapter.name}
           </Text>
         </View>
-        <IconButtonV2
-          name={isTranslated ? 'translate-off' : 'translate'}
-          size={24}
-          onPress={() => translateChapter()}
-          color={isTranslated ? theme.primary : theme.onSurface}
-          theme={theme}
-          style={styles.bookmark}
-        />
+        <View style={styles.translateButtonContainer}>
+          <IconButtonV2
+            name={getTranslateIconName()}
+            size={22}
+            onPress={() => translateChapter()}
+            color={getTranslateIconColor()}
+            theme={theme}
+          />
+          <View
+            style={[
+              styles.progressBarContainer,
+              { opacity: isTranslating ? 1 : 0 },
+            ]}
+          >
+            <View
+              style={[
+                styles.progressBarBackground,
+                { backgroundColor: color(theme.primary).alpha(0.2).string() },
+              ]}
+            />
+            <View
+              style={[
+                styles.progressBarFill,
+                {
+                  backgroundColor: theme.primary,
+                  width: `${Math.max(translateProgress, 2)}%`,
+                },
+              ]}
+            />
+          </View>
+        </View>
         <IconButtonV2
           name={bookmarked ? 'bookmark' : 'bookmark-outline'}
           size={24}
@@ -135,6 +176,7 @@ const styles = StyleSheet.create({
   appbar: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   bookmark: {
     marginEnd: 4,
@@ -155,5 +197,26 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
+  },
+  translateButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginStart: 4,
+    marginBottom: 3,
+  },
+  progressBarContainer: {
+    width: 28,
+    height: 3,
+    borderRadius: 1.5,
+    overflow: 'hidden',
+    marginTop: -6,
+  },
+  progressBarBackground: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 1.5,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 1.5,
   },
 });

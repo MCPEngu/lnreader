@@ -45,6 +45,7 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
     source: string,
     target: string,
     onProgress?: (progress: number) => void,
+    signal?: AbortSignal,
   ): Promise<string[]> {
     const results: string[] = [...texts];
     const chunks = this.chunkTexts(texts);
@@ -59,7 +60,7 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodedText}`;
 
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { signal });
         if (res.status === 429) {
           await sleep(1000);
           currentChunkIdx--;
@@ -93,7 +94,8 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
           // Fallback parsing or leave original if heavily mutated
           console.warn('Google chunk mismatch length');
         }
-      } catch (e) {
+      } catch (e: any) {
+        if (e?.name === 'AbortError') throw e;
         console.warn('Google Translate Error:', e);
       }
 
