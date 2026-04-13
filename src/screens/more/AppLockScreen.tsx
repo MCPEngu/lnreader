@@ -40,21 +40,23 @@ export const setLastActiveTimestamp = () => {
 export const shouldLockApp = (
   appLockEnabled: boolean,
   lockOnBackground: LockOnBackground,
+  isColdStart: boolean,
 ): boolean => {
   if (!appLockEnabled) {
     return false;
   }
+
   if (lockOnBackground === 'always') {
     return true;
+  }
+
+  if (lockOnBackground === 'never') {
+    return isColdStart;
   }
 
   const lastActive = MMKVStorage.getNumber(LAST_ACTIVE_KEY);
   if (!lastActive) {
     return true; // First launch with lock enabled → lock
-  }
-  // If lockOnBackground is never, return false (but we still need to check lastActive)
-  if (lockOnBackground === 'never') {
-    return false;
   }
 
   const elapsed = Date.now() - lastActive;
@@ -150,7 +152,7 @@ export const useAppLock = () => {
 
   // On cold start: check if we should lock immediately
   const [isLocked, setIsLocked] = useState(() =>
-    shouldLockApp(appLockEnabled, lockOnBackground),
+    shouldLockApp(appLockEnabled, lockOnBackground, true),
   );
   const [isCredentialsRevoked, setIsCredentialsRevoked] = useState(false);
   const isAuthenticatingRef = useRef(false);
@@ -206,7 +208,7 @@ export const useAppLock = () => {
       if (nextState === 'background' || nextState === 'inactive') {
         setLastActiveTimestamp();
       } else if (nextState === 'active') {
-        if (shouldLockApp(appLockEnabled, lockOnBackground)) {
+        if (shouldLockApp(appLockEnabled, lockOnBackground, false)) {
           setIsLocked(true);
         }
       }
