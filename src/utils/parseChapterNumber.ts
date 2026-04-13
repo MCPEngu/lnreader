@@ -1,5 +1,12 @@
 import { isNil } from 'lodash-es';
 
+const basicRegex = new RegExp(/(?<=ch[^\d]*[\s]*)([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?/);
+const numberRegex = new RegExp(/([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?/);
+const unwantedWhiteSpaceRegex = new RegExp(/\s(?=extra|special|omake)/g);
+const unwantedRegex = new RegExp(
+  /\b(?:v|ver|vol|version|volume|season|s)[^a-z]?[0-9]+/g,
+);
+
 export const parseChapterNumber = (
   novelName: string,
   chapterName: string,
@@ -9,19 +16,13 @@ export const parseChapterNumber = (
     return chapterNumber;
   }
 
-  const basic = new RegExp(/(?<=ch[^\d]*[\s]*)([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?/);
-  const number = new RegExp(/([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?/);
-  const unwantedWhiteSpace = new RegExp(/\s(?=extra|special|omake)/g);
-  const unwanted = new RegExp(
-    /\b(?:v|ver|vol|version|volume|season|s)[^a-z]?[0-9]+/g,
-  );
   let name = chapterName.toLowerCase();
   name = name.replace(novelName.toLowerCase(), '').trim();
   name = name.replace(',', '.').replace('-', '.');
-  name = name.replace(unwantedWhiteSpace, '');
-  name = name.replace(unwanted, '');
+  name = name.replace(unwantedWhiteSpaceRegex, '');
+  name = name.replace(unwantedRegex, '');
 
-  const basicMatch = name.match(basic);
+  const basicMatch = name.match(basicRegex);
 
   if (basicMatch?.length) {
     const chapNo = getChapterNumberFromMatch(basicMatch);
@@ -31,7 +32,7 @@ export const parseChapterNumber = (
     }
   }
 
-  const numberMatch = name.match(number);
+  const numberMatch = name.match(numberRegex);
   if (numberMatch?.length) {
     const chapNo = getChapterNumberFromMatch(numberMatch);
 

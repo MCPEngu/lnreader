@@ -77,6 +77,7 @@ const BottomNavigator = () => {
         headerShown: false,
         animation: 'shift',
         lazy: true,
+        freezeOnBlur: true,
         tabBarBadgeStyle: {
           backgroundColor: theme.error,
           color: theme.onError,

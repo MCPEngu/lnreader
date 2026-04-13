@@ -194,6 +194,7 @@ const ReaderBottomSheetV2: React.FC<ReaderBottomSheetV2Props> = ({
     >
       <BottomSheetView style={styles.flex}>
         <TabView
+          lazy={true}
           commonOptions={{
             label: renderLabel,
           }}
