@@ -91,7 +91,7 @@ export class LLMTranslateEngine implements TranslateEngine {
       (this.config.systemPrompt || defaultSystemPrompt) +
       `\nTranslate the following text from ${source} to ${target}`;
 
-    let i: any;
+    let i: ReturnType<typeof setInterval> | undefined;
 
     // Helper: create a promise that rejects when aborted
     const createAbortError = () => {
@@ -99,14 +99,17 @@ export class LLMTranslateEngine implements TranslateEngine {
       err.name = 'AbortError';
       return err;
     };
+    const abortCleanup = { remove: null as (() => void) | null };
     const abortPromise = signal
       ? new Promise<never>((_, reject) => {
           if (signal.aborted) {
             reject(createAbortError());
+            return;
           }
-          signal.addEventListener('abort', () => reject(createAbortError()), {
-            once: true,
-          });
+          const handler = () => reject(createAbortError());
+          signal.addEventListener('abort', handler, { once: true });
+          abortCleanup.remove = () =>
+            signal.removeEventListener('abort', handler);
         })
       : null;
 
@@ -268,6 +271,7 @@ export class LLMTranslateEngine implements TranslateEngine {
         `LLM Translation finished in ${(Date.now() - startTime) / 1000}s`,
       );
       clearInterval(i);
+      abortCleanup.remove?.();
     }
   }
 }
