@@ -23,6 +23,7 @@ export interface AppSettings {
 
   incognitoMode: boolean;
   disableHapticFeedback: boolean;
+  verboseLogging: boolean;
 
   /**
    * Appearence settings
@@ -154,6 +155,7 @@ const initialAppSettings: AppSettings = {
 
   incognitoMode: false,
   disableHapticFeedback: false,
+  verboseLogging: false,
 
   /**
    * Appearence settings

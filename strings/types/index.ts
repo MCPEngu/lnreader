@@ -34,6 +34,9 @@ export interface StringMap {
   'advancedSettingsScreen.recreateDBIndexesDialogTitle': 'string';
   'advancedSettingsScreen.recreateDBIndexesDesc': 'string';
   'advancedSettingsScreen.developer': 'string';
+  'advancedSettingsScreen.verboseLogging': 'string';
+  'advancedSettingsScreen.verboseLoggingDesc': 'string';
+  'advancedSettingsScreen.restartRequiredToast': 'string';
   'appearance': 'string';
   'appearanceScreen.accentColor': 'string';
   'appearanceScreen.alwaysShowNavLabels': 'string';

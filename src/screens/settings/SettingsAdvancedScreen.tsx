@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 
 import { Portal, Text, TextInput } from 'react-native-paper';
 
-import { useTheme, useUserAgent } from '@hooks/persisted';
+import { useAppSettings, useTheme, useUserAgent } from '@hooks/persisted';
 import { showToast } from '@utils/showToast';
+import SettingSwitch from './components/SettingSwitch';
 
 import { deleteCachedNovels } from '@hooks/persisted/useNovel';
 import { getString } from '@strings/translations';
@@ -30,6 +31,7 @@ const AdvancedSettings = ({ navigation }: AdvancedSettingsScreenProps) => {
   };
 
   const { userAgent, setUserAgent } = useUserAgent();
+  const { verboseLogging, setAppSettings } = useAppSettings();
   const [userAgentInput, setUserAgentInput] = useState(userAgent);
   /**
    * Confirm Clear Database Dialog
@@ -103,10 +105,25 @@ const AdvancedSettings = ({ navigation }: AdvancedSettingsScreenProps) => {
           <List.SubHeader theme={theme}>
             {getString('advancedSettingsScreen.developer')}
           </List.SubHeader>
+          <SettingSwitch
+            label={getString('advancedSettingsScreen.verboseLogging')}
+            description={getString('advancedSettingsScreen.verboseLoggingDesc')}
+            value={verboseLogging}
+            onPress={() => {
+              setAppSettings({ verboseLogging: !verboseLogging });
+              showToast(getString('advancedSettingsScreen.restartRequiredToast'));
+            }}
+            theme={theme}
+          />
           <List.Item
             title={getString('debugLogScreen.title')}
             description={getString('debugLogScreen.desc')}
-            onPress={() => navigation.getParent()?.navigate('DebugLog')}
+            onPress={() => {
+              if (verboseLogging) {
+                navigation.getParent()?.navigate('DebugLog');
+              }
+            }}
+            disabled={!verboseLogging}
             theme={theme}
           />
         </List.Section>

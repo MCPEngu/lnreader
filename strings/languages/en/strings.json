@@ -32,7 +32,10 @@
     "recreateDBIndexesToast": "Recreated DB indexes",
     "recreateDBIndexesDialogTitle": "All DB indexes will be recreated.\nThis may take a while.",
     "recreateDBIndexesDesc": "Recreates DB indexes. This may improve performance on slower devices.",
-    "developer": "Developer"
+    "developer": "Developer",
+    "verboseLogging": "Verbose Logging",
+    "verboseLoggingDesc": "Print detailed logs including system logs (reduces performance)",
+    "restartRequiredToast": "Please restart the app to apply changes"
   },
   "appearance": "Appearance",
   "appearanceScreen": {

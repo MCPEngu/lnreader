@@ -1,5 +1,10 @@
+import { getMMKVObject } from './src/utils/mmkv/mmkv';
 import DebugLogService from './src/services/DebugLogService';
-DebugLogService.install();
+
+const appSettings = getMMKVObject('APP_SETTINGS');
+if (appSettings?.verboseLogging) {
+  DebugLogService.install();
+}
 
 import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
