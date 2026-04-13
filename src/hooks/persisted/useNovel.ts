@@ -368,12 +368,13 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
 
   const bookmarkChapters = useCallback(
     (_chapters: ChapterInfo[]) => {
+      const chapterIdSet = new Set(_chapters.map(_c => _c.id));
       _chapters.forEach(_chapter => {
         _bookmarkChapter(_chapter.id);
       });
       mutateChapters(chs =>
         chs.map(chapter => {
-          if (_chapters.some(_c => _c.id === chapter.id)) {
+          if (chapterIdSet.has(chapter.id)) {
             return {
               ...chapter,
               bookmark: !chapter.bookmark,
@@ -441,11 +442,12 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
   const markChaptersRead = useCallback(
     (_chapters: ChapterInfo[]) => {
       const chapterIds = _chapters.map(chapter => chapter.id);
+      const chapterIdSet = new Set(chapterIds);
       _markChaptersRead(chapterIds);
 
       mutateChapters(chs =>
         chs.map(chapter => {
-          if (chapterIds.includes(chapter.id)) {
+          if (chapterIdSet.has(chapter.id)) {
             return {
               ...chapter,
               unread: false,
@@ -475,11 +477,12 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
   const markChaptersUnread = useCallback(
     (_chapters: ChapterInfo[]) => {
       const chapterIds = _chapters.map(chapter => chapter.id);
+      const chapterIdSet = new Set(chapterIds);
       _markChaptersUnread(chapterIds);
 
       mutateChapters(chs =>
         chs.map(chapter => {
-          if (chapterIds.includes(chapter.id)) {
+          if (chapterIdSet.has(chapter.id)) {
             return {
               ...chapter,
               unread: true,
@@ -520,6 +523,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
   const deleteChapters = useCallback(
     (_chaters: ChapterInfo[]) => {
       if (novel) {
+        const chapterIdSet = new Set(_chaters.map(_c => _c.id));
         _deleteChapters(novel.pluginId, novel.id, _chaters).then(() => {
           showToast(
             getString('updatesScreen.deletedChapters', {
@@ -528,7 +532,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
           );
           mutateChapters(chs =>
             chs.map(chapter => {
-              if (_chaters.some(_c => _c.id === chapter.id)) {
+              if (chapterIdSet.has(chapter.id)) {
                 return {
                   ...chapter,
                   isDownloaded: false,
