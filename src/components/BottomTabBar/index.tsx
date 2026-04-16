@@ -11,7 +11,8 @@ const TAB_ICON_CONTAINER_HEIGHT = 32;
 const TAB_ICON_ACTIVE_WIDTH = 64;
 const TAB_ICON_INACTIVE_WIDTH = 40;
 const TAB_ICON_SLOT_SIZE = 24;
-const TAB_LABEL_HEIGHT = 16;
+const TAB_LABEL_FONT_SIZE = 12;
+const TAB_LABEL_HEIGHT = 18;
 const TAB_ICON_LABEL_GAP = 4;
 
 interface CustomBottomTabBarProps extends BottomTabBarProps {
@@ -205,12 +206,11 @@ const styles = StyleSheet.create({
   labelSlot: {
     alignItems: 'center',
     height: TAB_LABEL_HEIGHT,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   label: {
-    fontSize: 12,
+    fontSize: TAB_LABEL_FONT_SIZE,
     lineHeight: TAB_LABEL_HEIGHT,
     textAlign: 'center',
-    includeFontPadding: false,
   },
 });
