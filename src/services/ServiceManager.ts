@@ -16,6 +16,7 @@ import { createBackup, restoreBackup } from './backup/local';
 import { migrateNovel, MigrateNovelData } from './migrate/migrateNovel';
 import { downloadChapter } from './download/downloadChapter';
 import { askForPostNotificationsPermission } from '@utils/askForPostNoftificationsPermission';
+import { showToast } from '@utils/showToast';
 
 type taskNames =
   | 'IMPORT_EPUB'
@@ -445,12 +446,26 @@ export default class ServiceManager {
 
   addTask(tasks: BackgroundTask | BackgroundTask[]) {
     const currentTasks = this.getTaskList();
+    const inputTasks = Array.isArray(tasks) ? tasks : [tasks];
 
-    const addableTasks = (Array.isArray(tasks) ? tasks : [tasks]).filter(
+    const addableTasks = inputTasks.filter(
       task =>
         this.isMultiplicableTask(task) ||
         !currentTasks.some(_t => _t.task?.name === task.name),
     );
+
+    // Show toast for rejected duplicate tasks (e.g. library update already running)
+    const rejectedTasks = inputTasks.filter(
+      task =>
+        !this.isMultiplicableTask(task) &&
+        currentTasks.some(_t => _t.task?.name === task.name),
+    );
+    for (const rejected of rejectedTasks) {
+      if (rejected.name === 'UPDATE_LIBRARY') {
+        showToast(getString('updatesScreen.alreadyUpdating'));
+      }
+    }
+
     if (addableTasks.length) {
       const newTasks: QueuedBackgroundTask[] = addableTasks.map(task => ({
         task,

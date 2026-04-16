@@ -1,4 +1,4 @@
-import React, { memo, Suspense, useEffect } from 'react';
+import React, { memo, Suspense, useCallback, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { RefreshControl, SectionList, StyleSheet, Text } from 'react-native';
 
@@ -10,6 +10,7 @@ import {
 } from '@components';
 
 import { useSearch } from '@hooks';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@hooks/persisted';
 import { getString } from '@strings/translations';
 import { ThemeColors } from '@theme/types';
@@ -154,13 +155,23 @@ export default memo(UpdatesScreen);
 const LastUpdateTime: React.FC<{
   lastUpdateTime: Date | number | string;
   theme: ThemeColors;
-}> = ({ lastUpdateTime, theme }) => (
-  <Text style={[styles.lastUpdateTime, { color: theme.onSurface }]}>
-    {`${getString('updatesScreen.lastUpdatedAt')} ${dayjs(
-      lastUpdateTime,
-    ).fromNow()}`}
-  </Text>
-);
+}> = ({ lastUpdateTime, theme }) => {
+  const [, forceUpdate] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      forceUpdate(n => n + 1);
+    }, []),
+  );
+
+  return (
+    <Text style={[styles.lastUpdateTime, { color: theme.onSurface }]}>
+      {`${getString('updatesScreen.lastUpdatedAt')} ${dayjs(
+        lastUpdateTime,
+      ).fromNow()}`}
+    </Text>
+  );
+};
 
 const styles = StyleSheet.create({
   dateHeader: {
