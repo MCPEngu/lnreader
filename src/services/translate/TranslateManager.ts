@@ -101,7 +101,7 @@ export class TranslateManager {
       }
     });
 
-    console.log("textsToTranslate", textsToTranslate.length);
+    console.log("textsToTranslate:", textsToTranslate.length);
 
     if (textsToTranslate.length === 0) {
       if (onProgress) onProgress(100);
@@ -116,6 +116,8 @@ export class TranslateManager {
       onProgress,
       signal,
     );
+
+    console.log("translatedTexts:", translatedTexts.length);
 
     // Replace properties back
     for (let i = 0; i < elementRefs.length; i++) {
