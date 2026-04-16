@@ -15,7 +15,6 @@ export default function StorageUsageSection() {
   
   const [cacheSize, setCacheSize] = useState<number>(0);
   const [freeSpace, setFreeSpace] = useState<number>(constants.FreeSpace);
-  const [clearing, setClearing] = useState(false);
 
   const fetchStorageInfo = () => {
     InteractionManager.runAfterInteractions(() => {
@@ -25,7 +24,7 @@ export default function StorageUsageSection() {
             constants.ExternalCachesDirectoryPath,
           );
           setCacheSize(cache);
-          
+
           const free = NativeFile.getFreeSpace();
           if (free > 0) {
             setFreeSpace(free);
@@ -39,7 +38,7 @@ export default function StorageUsageSection() {
 
   useEffect(() => {
     fetchStorageInfo();
-  }, [clearing]);
+  }, []);
 
   const formatBytes = (bytes: number, decimals = 2) => {
     if (!+bytes) {
@@ -53,15 +52,14 @@ export default function StorageUsageSection() {
   };
 
   const handleClearCache = () => {
-    setClearing(true);
     try {
       NativeFile.unlink(constants.ExternalCachesDirectoryPath);
       NativeFile.mkdir(constants.ExternalCachesDirectoryPath);
+      fetchStorageInfo();
       showToast(getString('advancedSettingsScreen.cacheCleared'));
     } catch (e) {
       console.error(e);
     }
-    setClearing(false);
   };
 
   const usePercent =
