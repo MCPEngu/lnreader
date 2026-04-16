@@ -71,9 +71,15 @@ const useClearCacheOnExit = () => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (nextAppState.match(/inactive|background/) && clearCacheOnExit) {
+        const constants = NativeFile.getConstants();
+
         try {
-          const constants = NativeFile.getConstants();
           NativeFile.unlink(constants.ExternalCachesDirectoryPath);
+        } catch (e) {
+          console.error(e);
+        }
+
+        try {
           NativeFile.mkdir(constants.ExternalCachesDirectoryPath);
         } catch (e) {
           console.error(e);
