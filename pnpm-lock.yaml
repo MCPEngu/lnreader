@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@cd-z/react-native-epub-creator':
-        specifier: ^3.0.0
-        version: 3.0.0(react-native@0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4))(react@19.1.4)
       '@google/genai':
         specifier: ^1.48.0
         version: 1.48.0
@@ -1165,15 +1162,6 @@ packages:
     resolution: {integrity: sha512-tTQ0uDSCL0ypeMa8T/E9wAZRGKWj8kXP7+6RYgPTfOPs9N07C9xM8P02GJ3feETap4Ux5S69D9nteq9mEj86NA==}
     peerDependencies:
       react: '>=16.3.0'
-
-  '@cd-z/epub-constructor@3.0.3':
-    resolution: {integrity: sha512-0Q4DBZ+H6kOihAfREu1dcfwkuwIoOtpXK24im24STP89aIb1HoAhGd3MKLKsZK3tIPVsdfjI2esPnYpmhVXxrw==}
-
-  '@cd-z/react-native-epub-creator@3.0.0':
-    resolution: {integrity: sha512-vpI3viNxkSJWuSCuotFKfe1Ulg7Z+VPBTSt4GkGSGwHwpZxkNnh/UOZqyHBTtn3yvjaq2PK3GABDZlxlDhiQvA==}
-    peerDependencies:
-      react: '*'
-      react-native: '*'
 
   '@drizzle-team/brocli@0.11.0':
     resolution: {integrity: sha512-hD3pekGiPg0WPCCGAZmusBBJsDqGUR66Y452YgQsZOnkdQ7ViEPKuyP4huUGEZQefp8g34RRodXYmJ2TbCH+tg==}
@@ -5500,12 +5488,6 @@ packages:
       react: '*'
       react-native: '*'
 
-  react-native-zip-archive@6.1.2:
-    resolution: {integrity: sha512-LcJomSY/6O3KHy/LF6Gb7F/yRJiZJ0lTlPQPbfeOHBQzfvqNJFJZ8x6HrdeYeokFf/UGB5bY7jfh4es6Y/PhBA==}
-    peerDependencies:
-      react: '>=16.8.6'
-      react-native: '>=0.60.0'
-
   react-native-zip-archive@7.0.2:
     resolution: {integrity: sha512-msCRJMcwH6NVZ2/zoC+1nvA0wlpYRnMxteQywS9nt4BzXn48tZpaVtE519QEZn0xe3ygvgsWx5cdPoE9Jx3bsg==}
     peerDependencies:
@@ -7574,19 +7556,6 @@ snapshots:
       deepmerge: 3.3.0
       hoist-non-react-statics: 3.3.2
       react: 19.1.4
-
-  '@cd-z/epub-constructor@3.0.3':
-    dependencies:
-      sanitize-html: 2.17.1
-
-  '@cd-z/react-native-epub-creator@3.0.0(react-native@0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4))(react@19.1.4)':
-    dependencies:
-      '@cd-z/epub-constructor': 3.0.3
-      react: 19.1.4
-      react-native: 0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4)
-      react-native-file-access: 3.2.0(react-native@0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4))(react@19.1.4)
-      react-native-saf-x: 2.2.3(react-native@0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4))(react@19.1.4)
-      react-native-zip-archive: 6.1.2(react-native@0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4))(react@19.1.4)
 
   '@drizzle-team/brocli@0.11.0': {}
 
@@ -12972,11 +12941,6 @@ snapshots:
       semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
-
-  react-native-zip-archive@6.1.2(react-native@0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4))(react@19.1.4):
-    dependencies:
-      react: 19.1.4
-      react-native: 0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4)
 
   react-native-zip-archive@7.0.2(react-native@0.81.6(@babel/core@7.29.0)(@react-native-community/cli@20.1.1(typescript@5.9.3))(@react-native/metro-config@0.81.6(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.4))(react@19.1.4):
     dependencies:

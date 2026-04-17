@@ -85,7 +85,8 @@ export const NativeCrashFallback: React.FC<{ children: React.ReactNode }> = ({ c
         }
       }
     } catch (e) {
-      // Ignore
+      // eslint-disable-next-line no-console
+      console.error(e);
     }
   }, []);
 
@@ -103,7 +104,8 @@ export const NativeCrashFallback: React.FC<{ children: React.ReactNode }> = ({ c
         }
       }
     } catch (e) {
-      // Ignore
+      // eslint-disable-next-line no-console
+      console.error(e);
     }
     setCrashLog(null);
   }, [crashLog]);
