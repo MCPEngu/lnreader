@@ -47,7 +47,6 @@
     }
   },
   "dependencies": {
-    "@cd-z/react-native-epub-creator": "^3.0.0",
     "@google/genai": "^1.48.0",
     "@gorhom/bottom-sheet": "^5.2.8",
     "@legendapp/list": "^2.0.19",
