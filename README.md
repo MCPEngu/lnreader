@@ -72,7 +72,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 [MIT](https://github.com/lnreader/lnreader/blob/main/LICENSE)
 
-
 ## Key Changes from the Original LNReader
 - **Advanced Light Novel Structure**: Partial support for organizing Japanese Light Novels into "series" and "volumes" based on the legacy Page structure.
 - **Auto HTTPS Upgrade**: The reader WebView now automatically upgrades insecure HTTP connections to HTTPS.
