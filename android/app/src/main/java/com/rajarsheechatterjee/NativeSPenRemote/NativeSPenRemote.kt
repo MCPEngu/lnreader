@@ -30,6 +30,10 @@ class NativeSPenRemote(appContext: ReactApplicationContext) :
 
         private val handledKeyCodes =
             setOf(
+                KeyEvent.KEYCODE_A,
+                KeyEvent.KEYCODE_D,
+                KeyEvent.KEYCODE_E,
+                KeyEvent.KEYCODE_Q,
                 KeyEvent.KEYCODE_PAGE_DOWN,
                 KeyEvent.KEYCODE_PAGE_UP,
                 KeyEvent.KEYCODE_F7,
@@ -49,10 +53,18 @@ class NativeSPenRemote(appContext: ReactApplicationContext) :
 
             val eventName =
                 when (event.keyCode) {
+                    KeyEvent.KEYCODE_D,
                     KeyEvent.KEYCODE_PAGE_DOWN -> EVENT_NEXT_PAGE
+
+                    KeyEvent.KEYCODE_A,
                     KeyEvent.KEYCODE_PAGE_UP -> EVENT_PREV_PAGE
+
+                    KeyEvent.KEYCODE_Q,
                     KeyEvent.KEYCODE_F7 -> EVENT_PREV_CHAPTER
+
+                    KeyEvent.KEYCODE_E,
                     KeyEvent.KEYCODE_F8 -> EVENT_NEXT_CHAPTER
+
                     else -> return
                 }
 
