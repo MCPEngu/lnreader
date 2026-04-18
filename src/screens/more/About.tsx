@@ -11,6 +11,7 @@ import { AboutScreenProps } from '@navigators/types';
 import { GIT_HASH, RELEASE_DATE, BUILD_TYPE } from '@env';
 import * as Clipboard from 'expo-clipboard';
 import { version } from '../../../package.json';
+import { APP_GITHUB, APP_WEBSITE, DISCORD_INVITE, PLUGIN_GITHUB } from '@utils/constants/metadata';
 
 const AboutScreen = ({ navigation }: AboutScreenProps) => {
   const theme = useTheme();
@@ -51,7 +52,7 @@ const AboutScreen = ({ navigation }: AboutScreenProps) => {
             title={getString('aboutScreen.whatsNew')}
             onPress={() =>
               Linking.openURL(
-                `https://github.com/lnreader/lnreader/releases/tag/v${version}`,
+                `${APP_GITHUB}/releases/tag/v${version}`,
               )
             }
             theme={theme}
@@ -59,29 +60,29 @@ const AboutScreen = ({ navigation }: AboutScreenProps) => {
           <List.Divider theme={theme} />
           <List.Item
             title={getString('aboutScreen.website')}
-            description="https://lnreader.app"
-            onPress={() => Linking.openURL('https://lnreader.app')}
+            description={APP_WEBSITE}
+            onPress={() => Linking.openURL(APP_WEBSITE)}
             theme={theme}
           />
           <List.Item
             title={getString('aboutScreen.discord')}
-            description="https://discord.gg/QdcWN4MD63"
-            onPress={() => Linking.openURL('https://discord.gg/QdcWN4MD63')}
+            description={DISCORD_INVITE}
+            onPress={() => Linking.openURL(DISCORD_INVITE)}
             theme={theme}
           />
           <List.Item
             title={getString('aboutScreen.github')}
-            description="https://github.com/lnreader/lnreader"
+            description={APP_GITHUB}
             onPress={() =>
-              Linking.openURL('https://github.com/lnreader/lnreader')
+              Linking.openURL(APP_GITHUB)
             }
             theme={theme}
           />
           <List.Item
             title={getString('aboutScreen.plugins')}
-            description="https://github.com/lnreader/lnreader-plugins"
+            description={PLUGIN_GITHUB}
             onPress={() =>
-              Linking.openURL('https://github.com/lnreader/lnreader-plugins')
+              Linking.openURL(PLUGIN_GITHUB)
             }
             theme={theme}
           />
