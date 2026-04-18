@@ -40,10 +40,19 @@ import { defaultTo } from 'lodash-es';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
 import NativeVolumeButtonListener from '@specs/NativeVolumeButtonListener';
+import NativeSPenRemote from '@specs/NativeSPenRemote';
 import NativeFile from '@specs/NativeFile';
 import { useNovelContext } from '@screens/novel/NovelContext';
+import {
+  handleSPenRemoteEvent,
+  SPenRemoteEventName,
+  SPEN_REMOTE_EVENTS,
+} from '../utils/sPenRemote';
 
 const emmiter = new NativeEventEmitter(NativeVolumeButtonListener);
+const sPenEmitter = NativeSPenRemote
+  ? new NativeEventEmitter(NativeSPenRemote)
+  : null;
 
 export default function useChapter(
   webViewRef: RefObject<WebView | null>,
@@ -131,10 +140,12 @@ export default function useChapter(
 
   // Cleanup: abort all translations when the hook unmounts (leaving reader)
   useEffect(() => {
+    const translatedCache = translatedChapterCache.current;
+
     return () => {
       currentTranslateAbort.current?.abort();
       backgroundTranslateAbort.current?.abort();
-      translatedChapterCache.current.clear();
+      translatedCache.clear();
     };
   }, []);
 
@@ -190,10 +201,7 @@ export default function useChapter(
 
           // Store in cache (limit to 1 entry)
           translatedChapterCache.current.clear();
-          translatedChapterCache.current.set(
-            targetChapter.id,
-            translatedHtml,
-          );
+          translatedChapterCache.current.set(targetChapter.id, translatedHtml);
           backgroundTranslatingChapterId.current = null;
 
           // If the user is currently viewing this chapter, apply translation
@@ -508,6 +516,32 @@ export default function useChapter(
     },
     [getChapter, nextChapter, prevChapter],
   );
+
+  const connectSPenRemote = useCallback(() => {
+    if (!sPenEmitter) {
+      return () => {};
+    }
+
+    const subscriptions = (
+      Object.values(SPEN_REMOTE_EVENTS) as SPenRemoteEventName[]
+    ).map(eventName =>
+      sPenEmitter.addListener(eventName, () =>
+        handleSPenRemoteEvent({ navigateChapter, webViewRef }, eventName),
+      ),
+    );
+
+    return () => {
+      subscriptions.forEach(subscription => subscription.remove());
+    };
+  }, [navigateChapter, webViewRef]);
+
+  useEffect(() => {
+    const disconnect = connectSPenRemote();
+
+    return () => {
+      disconnect();
+    };
+  }, [connectSPenRemote]);
 
   useEffect(() => {
     if (!incognitoMode) {

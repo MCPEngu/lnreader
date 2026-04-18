@@ -8,6 +8,7 @@ import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
+import com.rajarsheechatterjee.NativeSPenRemote.NativeSPenRemote
 import com.rajarsheechatterjee.NativeVolumeButtonListener.NativeVolumeButtonListener
 import expo.modules.ReactActivityDelegateWrapper
 import org.devio.rn.splashscreen.SplashScreen
@@ -28,24 +29,30 @@ class MainActivity : ReactActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (NativeVolumeButtonListener.isActive) {
             val action = event.action
-            return when (event.keyCode) {
+            when (event.keyCode) {
                 KeyEvent.KEYCODE_VOLUME_UP -> {
                     if (action == KeyEvent.ACTION_DOWN) {
                         NativeVolumeButtonListener.sendEvent(true)
                     }
-                    true
+                    return true
                 }
 
                 KeyEvent.KEYCODE_VOLUME_DOWN -> {
                     if (action == KeyEvent.ACTION_DOWN) {
                         NativeVolumeButtonListener.sendEvent(false)
                     }
-                    true
+                    return true
                 }
 
-                else -> super.dispatchKeyEvent(event)
+                else -> {}
             }
         }
+
+        if (NativeSPenRemote.shouldHandleKeyEvent(event)) {
+            NativeSPenRemote.handleKeyEvent(event)
+            return true
+        }
+
         return super.dispatchKeyEvent(event)
     }
 

@@ -14,6 +14,7 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.rajarsheechatterjee.NativeFile.NativePackage
+import com.rajarsheechatterjee.NativeSPenRemote.NativeSPenRemotePackage
 import com.rajarsheechatterjee.NativeVolumeButtonListener.NativeVolumeButtonListenerPackage
 import com.rajarsheechatterjee.NativeTTSMediaControl.NativeTTSMediaControlPackage
 import com.rajarsheechatterjee.NativeZipArchive.NativeZipArchivePackage
@@ -32,6 +33,7 @@ class MainApplication : Application(), ReactApplication {
             override fun getPackages(): List<ReactPackage> =
                 PackageList(this).packages.apply {
                     add(NativePackage())
+                    add(NativeSPenRemotePackage())
                     add(NativeTTSMediaControlPackage())
                     add(NativeVolumeButtonListenerPackage())
                     add(NativeZipArchivePackage())
