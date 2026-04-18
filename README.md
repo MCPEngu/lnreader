@@ -15,11 +15,12 @@ This is a modified version for my personal use. It is perfectly compatible with 
 
 ### Screenshots
 
-| App Lock | Book Detail | Reader | Translate Setting |
-| ------- | ----------- | ------ | ----- |
-| ![](./.github/readme-images/v2/applock.jpg) | ![](./.github/readme-images/v2/book_detail.jpg) | ![](./.github/readme-images/v2/reader.jpg) | ![](./.github/readme-images/v2/translate.jpg) |
+|                             App Lock                             |                             Book Detail                              |                             Reader                              |                         Translate Setting                          |
+| :--------------------------------------------------------------: | :------------------------------------------------------------------: | :-------------------------------------------------------------: | :----------------------------------------------------------------: |
+| <img src="./.github/readme-images/v2/applock.jpg" width="220" /> | <img src="./.github/readme-images/v2/book_detail.jpg" width="220" /> | <img src="./.github/readme-images/v2/reader.jpg" width="220" /> | <img src="./.github/readme-images/v2/translate.jpg" width="220" /> |
 
 ### Key Changes from the Original LNReader
+
 - **Advanced Light Novel Structure**: Partial support for organizing Japanese Light Novels into "series" and "volumes" based on the legacy Page structure.
 - **Auto HTTPS Upgrade**: The reader WebView now automatically upgrades insecure HTTP connections to HTTPS.
 - **Default DNS over HTTPS (DoH)**: Implemented DoH by default using Cloudflare's 1.1.1.1 for enhanced privacy and bypass.
