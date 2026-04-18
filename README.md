@@ -1,3 +1,41 @@
+## LNReader eXtended
+
+This is a modified version for my personal use. It is perfectly compatible with the original LNReader's plugins and backup files, allowing you to easily migrate to this application.
+
+> [!WARNING]  
+> This version is not recommended for production use.
+
+> [!CAUTION]  
+> Despite having a similar icon and app name, this application is not affiliated with the original app (I just haven't come up with a better icon and name yet).
+
+> [!NOTE]  
+> This fork uses AI slop.
+
+---
+
+### Screenshots
+
+| App Lock | Book Detail | Reader | Translate Setting |
+| ------- | ----------- | ------ | ----- |
+| ![](./.github/readme-images/v2/applock.jpg) | ![](./.github/readme-images/v2/book_detail.jpg) | ![](./.github/readme-images/v2/reader.jpg) | ![](./.github/readme-images/v2/translate.jpg) |
+
+### Key Changes from the Original LNReader
+- **Advanced Light Novel Structure**: Partial support for organizing Japanese Light Novels into "series" and "volumes" based on the legacy Page structure.
+- **Auto HTTPS Upgrade**: The reader WebView now automatically upgrades insecure HTTP connections to HTTPS.
+- **Default DNS over HTTPS (DoH)**: Implemented DoH by default using Cloudflare's 1.1.1.1 for enhanced privacy and bypass.
+- **EPUB Image Fixes**: Fixed bugs causing missing images when exporting image-heavy novels to EPUB (also resolved issues when importing these EPUB files).
+- **EPUB Import Permissions**: Fixed file read permission errors that occurred when importing EPUBs.
+- **Novel Translation**: Implemented in-app novel translation capabilities using Google Translate and LLMs.
+- **App Lock & Privacy**: Added custom App Lock and prevented taking screenshots to protect privacy.
+- **Smooth Backups**: Optimized the Backup & Restore menu to prevent UI freezes.
+- **Developer Tools**: Added a Debug menu and a Storage/Cache viewer.
+- **UI Enhancements**: Minor but meaningful tweaks and improvements to the user interface.
+
+---
+
+<details>
+<summary><b>Original README</b> (Click to expand/collapse)</summary>
+
 <p align="center">
   <a href="https://lnreader.app">
     <img src="./.github/readme-images/icon_new.png" align="center" width="128" />
@@ -72,14 +110,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 [MIT](https://github.com/lnreader/lnreader/blob/main/LICENSE)
 
-## Key Changes from the Original LNReader
-- **Advanced Light Novel Structure**: Partial support for organizing Japanese Light Novels into "series" and "volumes" based on the legacy Page structure.
-- **Auto HTTPS Upgrade**: The reader WebView now automatically upgrades insecure HTTP connections to HTTPS.
-- **Default DNS over HTTPS (DoH)**: Implemented DoH by default using Cloudflare's 1.1.1.1 for enhanced privacy and bypass.
-- **EPUB Image Fixes**: Fixed bugs causing missing images when exporting image-heavy novels to EPUB (also resolved issues when importing these EPUB files).
-- **EPUB Import Permissions**: Fixed file read permission errors that occurred when importing EPUBs.
-- **Novel Translation**: Implemented in-app novel translation capabilities using Google Translate and LLMs.
-- **App Lock & Privacy**: Added custom App Lock and prevented taking screenshots to protect privacy.
-- **Smooth Backups**: Optimized the Backup & Restore menu to prevent UI freezes.
-- **Developer Tools**: Added a Debug menu and a Storage/Cache viewer.
-- **UI Enhancements**: Minor but meaningful tweaks and improvements to the user interface.
+</details>
