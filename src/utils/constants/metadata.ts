@@ -4,6 +4,10 @@ export const APP_WEBSITE = "https://lnreader.app";
 // Todo: Change discord server
 export const DISCORD_INVITE = "https://discord.gg/QdcWN4MD63";
 
-export const APP_GITHUB = "https://github.com/Yuneko-dev/lnreader-extended";
+export const GITHUB_USER = "Yuneko-dev";
 
-export const PLUGIN_GITHUB = "https://github.com/Yuneko-dev/lnreader-plugins";
+export const GITHUB_REPO = "lnreader-extended";
+
+export const APP_GITHUB = `https://github.com/${GITHUB_USER}/${GITHUB_REPO}`
+
+export const PLUGIN_GITHUB = `https://github.com/${GITHUB_USER}/lnreader-plugins`;

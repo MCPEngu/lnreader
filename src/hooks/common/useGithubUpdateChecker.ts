@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { version } from '../../../package.json';
 import { newer } from '@utils/compareVersion';
 import { MMKVStorage } from '@utils/mmkv/mmkv';
+import { GITHUB_USER, GITHUB_REPO } from '@utils/constants/metadata';
 
 interface GithubUpdate {
   isNewVersion: boolean;
@@ -13,7 +14,7 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export const useGithubUpdateChecker = (): GithubUpdate => {
   const latestReleaseUrl =
-    'https://api.github.com/repos/rajarsheechatterjee/lnreader/releases/latest';
+    `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases/latest`;
 
   const [checking, setChecking] = useState(true);
   const [latestRelease, setLatestRelease] = useState<any>();
