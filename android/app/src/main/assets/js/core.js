@@ -721,14 +721,16 @@ window.addEventListener('load', () => {
     };
 
     if (reader.generalSettings.val.pageReader) {
-      const position = detectTapPosition(x, y, true);
-      if (position === 'left') {
-        pageReader.movePage(pageReader.page.val - 1);
-        return;
-      }
-      if (position === 'right') {
-        pageReader.movePage(pageReader.page.val + 1);
-        return;
+      if (reader.generalSettings.val.tapToScroll) {
+        const position = detectTapPosition(x, y, true);
+        if (position === 'left') {
+          pageReader.movePage(pageReader.page.val - 1);
+          return;
+        }
+        if (position === 'right') {
+          pageReader.movePage(pageReader.page.val + 1);
+          return;
+        }
       }
     } else {
       if (reader.generalSettings.val.tapToScroll) {
