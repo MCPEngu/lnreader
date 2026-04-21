@@ -565,8 +565,9 @@ export default function useChapter(
   const refetch = useCallback(() => {
     setLoading(true);
     setError('');
+    chapterTextCache.delete(chapter.id);
     getChapter();
-  }, [getChapter]);
+  }, [getChapter, chapter.id, chapterTextCache]);
 
   const revertTranslation = useCallback(() => {
     if (isTranslated && originalChapterText.current) {

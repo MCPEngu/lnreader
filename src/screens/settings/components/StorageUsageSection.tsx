@@ -37,9 +37,12 @@ export default function StorageUsageSection() {
     interactionTaskRef.current = InteractionManager.runAfterInteractions(() => {
       timeoutRef.current = setTimeout(() => {
         try {
-          const cache = NativeFile.getFileSize(
+          let cache = NativeFile.getFileSize(
             constants.ExternalCachesDirectoryPath,
           );
+          if (constants.CachesDirectoryPath) {
+            cache += NativeFile.getFileSize(constants.CachesDirectoryPath);
+          }
           setCacheSize(cache);
 
           const free = NativeFile.getFreeSpace();
@@ -79,6 +82,10 @@ export default function StorageUsageSection() {
     try {
       NativeFile.unlink(constants.ExternalCachesDirectoryPath);
       NativeFile.mkdir(constants.ExternalCachesDirectoryPath);
+      if (constants.CachesDirectoryPath) {
+        NativeFile.unlink(constants.CachesDirectoryPath);
+        NativeFile.mkdir(constants.CachesDirectoryPath);
+      }
       fetchStorageInfo();
       showToast(getString('advancedSettingsScreen.cacheCleared'));
     } catch (e) {

@@ -33,6 +33,7 @@ export interface Spec extends TurboModule {
   getConstants: () => {
     ExternalDirectoryPath: string;
     ExternalCachesDirectoryPath: string;
+    CachesDirectoryPath?: string;
     TotalSpace: number;
     FreeSpace: number;
     StoragePath: string;

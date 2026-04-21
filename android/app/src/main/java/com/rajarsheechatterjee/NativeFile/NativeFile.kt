@@ -287,6 +287,10 @@ class NativeFile(context: ReactApplicationContext) :
         if (externalCachesDirectory != null) {
             constants["ExternalCachesDirectoryPath"] = externalCachesDirectory.absolutePath
         }
+        val cachesDirectory = this.reactApplicationContext.cacheDir
+        if (cachesDirectory != null) {
+            constants["CachesDirectoryPath"] = cachesDirectory.absolutePath
+        }
         return constants
     }
 }
