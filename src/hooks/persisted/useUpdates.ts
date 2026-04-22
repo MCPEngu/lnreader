@@ -18,7 +18,9 @@ export const useLastUpdate = () => {
     SHOW_LAST_UPDATE_TIME,
   );
   const [lastUpdateTime, setLastUpdateTime] = useMMKVString(LAST_UPDATE_TIME);
-  const [novelUpdateRandomKey, setNovelUpdateRandomKey] = useMMKVString(NOVEL_UPDATE_RANDOM_KEY);
+  const [novelUpdateRandomKey, setNovelUpdateRandomKey] = useMMKVString(
+    NOVEL_UPDATE_RANDOM_KEY,
+  );
   return {
     lastUpdateTime,
     showLastUpdateTime,
@@ -33,7 +35,8 @@ export const useUpdates = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [updatesOverview, setUpdatesOverview] = useState<UpdateOverview[]>([]);
 
-  const { lastUpdateTime, showLastUpdateTime, novelUpdateRandomKey } = useLastUpdate();
+  const { lastUpdateTime, showLastUpdateTime, novelUpdateRandomKey } =
+    useLastUpdate();
   const [error, setError] = useState('');
 
   const getDetailedUpdates = useCallback(
