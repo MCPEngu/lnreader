@@ -10,6 +10,7 @@ import {
 
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import { Portal, TextInput } from 'react-native-paper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { updateNovelInfo } from '@database/queries/NovelQueries';
 
 import { getString } from '@strings/translations';
@@ -72,6 +73,7 @@ const EditInfoModal = ({
   return (
     <Portal>
       <Modal visible={modalVisible} onDismiss={hideModal}>
+        <KeyboardAwareScrollView>
         <Text style={[styles.modalTitle, getModalTitleColor(theme)]}>
           {getString('novelScreen.edit.info')}
         </Text>
@@ -226,6 +228,7 @@ const EditInfoModal = ({
           </Button>
           <Button onPress={hideModal}>{getString('common.cancel')}</Button>
         </View>
+        </KeyboardAwareScrollView>
       </Modal>
     </Portal>
   );

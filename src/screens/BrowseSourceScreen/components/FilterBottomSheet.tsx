@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 import BottomSheet from '@components/BottomSheet/BottomSheet';
-import { BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet';
+import { BottomSheetFlatList, BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
 import { useTheme } from '@hooks/persisted';
 import {
@@ -61,6 +61,7 @@ const FilterItem: React.FC<FilterItemProps> = ({
     return (
       <View style={styles.textContainer}>
         <TextInput
+          render={props => <BottomSheetTextInput {...props as any} />}
           style={[styles.flex, { width: screenWidth - 48 }]}
           mode="outlined"
           label={

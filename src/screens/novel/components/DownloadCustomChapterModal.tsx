@@ -6,6 +6,7 @@ import { ThemeColors } from '@theme/types';
 import { ChapterInfo, NovelInfo } from '@database/types';
 import { getString } from '@strings/translations';
 import { Modal } from '@components';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface DownloadCustomChapterModalProps {
   theme: ThemeColors;
@@ -50,6 +51,7 @@ const DownloadCustomChapterModal = ({
   return (
     <Portal>
       <Modal visible={modalVisible} onDismiss={onDismiss}>
+        <KeyboardAwareScrollView>
         <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
           {getString('novelScreen.download.customAmount')}
         </Text>
@@ -97,6 +99,7 @@ const DownloadCustomChapterModal = ({
         >
           {getString('libraryScreen.bottomSheet.display.download')}
         </Button>
+        </KeyboardAwareScrollView>
       </Modal>
     </Portal>
   );

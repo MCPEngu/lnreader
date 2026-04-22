@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Portal, TextInput } from 'react-native-paper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Modal } from '@components';
 import { ThemeColors } from '../../theme/types';
 
@@ -74,6 +75,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   return (
     <Portal>
       <Modal visible={visible} onDismiss={onDismiss}>
+        <KeyboardAwareScrollView>
         <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
           {title}
         </Text>
@@ -112,6 +114,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
           error={Boolean(error)}
         />
         <Text style={styles.errorText}>{error}</Text>
+        </KeyboardAwareScrollView>
       </Modal>
     </Portal>
   );

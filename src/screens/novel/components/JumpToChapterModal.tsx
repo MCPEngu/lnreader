@@ -6,6 +6,7 @@ import {
   TextInput as RNTextInput,
 } from 'react-native';
 import { getString } from '@strings/translations';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Button, Modal, SwitchItem } from '@components';
 
 import { Portal, Text } from 'react-native-paper';
@@ -189,6 +190,7 @@ const JumpToChapterModal = ({
   return (
     <Portal>
       <Modal visible={modalVisible} onDismiss={onDismiss}>
+        <KeyboardAwareScrollView>
         <View>
           <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
             {getString('novelScreen.jumpToChapterModal.jumpToChapter')}
@@ -235,6 +237,7 @@ const JumpToChapterModal = ({
             onPress={() => setMode(!mode)}
           />
         </View>
+        </KeyboardAwareScrollView>
         {result.length ? (
           <View style={[styles.legendlist, { borderColor: theme.outline }]}>
             <LegendList

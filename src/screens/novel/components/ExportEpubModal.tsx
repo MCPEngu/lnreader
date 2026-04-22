@@ -8,6 +8,7 @@ import { Button, List, Modal, SwitchItem } from '@components';
 import { useBoolean } from '@hooks';
 import { getString } from '@strings/translations';
 import { useChapterReaderSettings, useTheme } from '@hooks/persisted';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { showToast } from '@utils/showToast';
 
 interface ExportEpubModalProps {
@@ -94,6 +95,7 @@ const ExportEpubModal: React.FC<ExportEpubModalProps> = ({
 
   return (
     <Modal visible={isVisible} onDismiss={onDismiss}>
+      <KeyboardAwareScrollView>
       <View>
         <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
           {getString('novelScreen.exportEpubModal.title')}
@@ -177,6 +179,7 @@ const ExportEpubModal: React.FC<ExportEpubModalProps> = ({
         <Button title={getString('common.submit')} onPress={onSubmit} />
         <Button title={getString('common.cancel')} onPress={hideModal} />
       </View>
+      </KeyboardAwareScrollView>
     </Modal>
   );
 };

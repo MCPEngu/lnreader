@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { TextInput, overlay } from 'react-native-paper';
 import { Button, Modal, SwitchItem, Checkbox, Menu } from '@components/index';
 import { useTheme } from '@hooks/persisted';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { getString } from '@strings/translations';
 import { Storage } from '@plugins/helpers/storage';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
@@ -94,6 +95,7 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
 
   return (
     <Modal visible={visible} onDismiss={onDismiss}>
+      <KeyboardAwareScrollView>
       <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
         {title}
       </Text>
@@ -231,6 +233,7 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
           mode="contained"
         />
       </View>
+      </KeyboardAwareScrollView>
     </Modal>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Portal, TextInput } from 'react-native-paper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { Button, Modal } from '@components/index';
 
@@ -45,6 +46,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   return (
     <Portal>
       <Modal visible={visible} onDismiss={close}>
+        <KeyboardAwareScrollView>
         <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
           {getString(
             isEditMode
@@ -79,6 +81,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           />
           <Button title={getString('common.cancel')} onPress={close} />
         </View>
+        </KeyboardAwareScrollView>
       </Modal>
     </Portal>
   );
