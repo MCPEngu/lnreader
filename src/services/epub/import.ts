@@ -142,6 +142,7 @@ export const importEpub = async (
   NativeFile.mkdir(epubDirPath);
   await NativeZipArchive.unzip(epubFilePath, epubDirPath);
   const novel = await NativeEpub.parseNovelAndChapters(epubDirPath);
+  console.log(novel);
   if (!novel.name) {
     novel.name = filename.replace('.epub', '') || 'Untitled';
   }

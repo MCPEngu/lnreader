@@ -7,7 +7,10 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Parser
+import java.io.BufferedInputStream
 import java.io.File
+import java.io.FileInputStream
+import java.net.URLConnection
 
 data class EpubChapter(val name: String, val path: String)
 
@@ -113,9 +116,14 @@ object EpubParser {
 
                 idToHref[id] = href
 
-                when (mediaType) {
-                    "text/css" -> metaOut.cssPaths.add(joinPath(opfDir, href))
-                    "image/jpeg", "image/png", "image/jpg" ->
+                val resolvedType = mediaType.ifEmpty {
+                    detectMediaType(joinPath(opfDir, href))
+                }
+
+                when {
+                    resolvedType == "text/css" ->
+                        metaOut.cssPaths.add(joinPath(opfDir, href))
+                    resolvedType.startsWith("image/") ->
                         metaOut.imagePaths.add(joinPath(opfDir, href))
                 }
             }
@@ -307,6 +315,53 @@ object EpubParser {
         if (path.isEmpty()) return ""
         val pos = path.lastIndexOfAny(charArrayOf('/', '\\'))
         return if (pos == -1) "" else path.substring(0, pos)
+    }
+
+    // --- File type detection ---
+
+    /** Known image file extensions */
+    private val IMAGE_EXTENSIONS = setOf(
+        "jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff", "tif", "ico"
+    )
+
+    /** Known CSS file extensions */
+    private val CSS_EXTENSIONS = setOf("css")
+
+    /**
+     * Detect media type when the manifest's media-type attribute is missing.
+     * 1. Try file extension first (fast)
+     * 2. Fall back to magic bytes via URLConnection (accurate)
+     */
+    private fun detectMediaType(filePath: String): String {
+        // Try extension first
+        val ext = filePath.substringAfterLast('.', "").lowercase()
+        if (ext in CSS_EXTENSIONS) return "text/css"
+        if (ext in IMAGE_EXTENSIONS) {
+            return when (ext) {
+                "jpg", "jpeg" -> "image/jpeg"
+                "png" -> "image/png"
+                "gif" -> "image/gif"
+                "webp" -> "image/webp"
+                "svg" -> "image/svg+xml"
+                "bmp" -> "image/bmp"
+                "tiff", "tif" -> "image/tiff"
+                "ico" -> "image/x-icon"
+                else -> "image/$ext"
+            }
+        }
+
+        // Fall back to magic bytes
+        val file = File(filePath)
+        if (!file.exists() || !file.isFile) return ""
+        return try {
+            FileInputStream(file).use { fis ->
+                BufferedInputStream(fis).use { bis ->
+                    URLConnection.guessContentTypeFromStream(bis) ?: ""
+                }
+            }
+        } catch (_: Exception) {
+            ""
+        }
     }
 
     // --- Helpers ---
