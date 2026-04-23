@@ -8,6 +8,7 @@ import { Button, List, Modal, SwitchItem } from '@components';
 import { useBoolean } from '@hooks';
 import { getString } from '@strings/translations';
 import { useChapterReaderSettings, useTheme } from '@hooks/persisted';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { showToast } from '@utils/showToast';
 
 interface ExportEpubModalProps {
@@ -94,89 +95,95 @@ const ExportEpubModal: React.FC<ExportEpubModalProps> = ({
 
   return (
     <Modal visible={isVisible} onDismiss={onDismiss}>
-      <View>
-        <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
-          {getString('novelScreen.exportEpubModal.title')}
-        </Text>
-        <TextInput
-          onChangeText={setUri}
-          value={uri}
-          placeholder={getString('novelScreen.exportEpubModal.selectFolder')}
-          onSubmitEditing={onSubmit}
-          mode="outlined"
-          theme={{ colors: { ...theme } }}
-          underlineColor={theme.outline}
-          dense
-          right={
-            <TextInput.Icon
-              icon="folder-edit-outline"
-              onPress={openFolderPicker}
-            />
-          }
-        />
-      </View>
-      <View style={styles.settings}>
-        <SwitchItem
-          label={getString('novelScreen.exportEpubModal.exportAll')}
-          value={exportAll.value}
-          onPress={exportAll.toggle}
+      <KeyboardAwareScrollView>
+        <View>
+          <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
+            {getString('novelScreen.exportEpubModal.title')}
+          </Text>
+          <TextInput
+            onChangeText={setUri}
+            value={uri}
+            placeholder={getString('novelScreen.exportEpubModal.selectFolder')}
+            onSubmitEditing={onSubmit}
+            mode="outlined"
+            theme={{ colors: { ...theme } }}
+            underlineColor={theme.outline}
+            dense
+            right={
+              <TextInput.Icon
+                icon="folder-edit-outline"
+                onPress={openFolderPicker}
+              />
+            }
+          />
+        </View>
+        <View style={styles.settings}>
+          <SwitchItem
+            label={getString('novelScreen.exportEpubModal.exportAll')}
+            value={exportAll.value}
+            onPress={exportAll.toggle}
+            theme={theme}
+          />
+          {!exportAll.value && (
+            <View style={styles.rangeInputs}>
+              <TextInput
+                label={getString('novelScreen.exportEpubModal.startChapter')}
+                value={startChapter}
+                onChangeText={setStartChapter}
+                keyboardType="numeric"
+                mode="outlined"
+                theme={{ colors: { ...theme } }}
+                underlineColor={theme.outline}
+                dense
+                style={styles.rangeInput}
+              />
+              <TextInput
+                label={getString('novelScreen.exportEpubModal.endChapter')}
+                value={endChapter}
+                onChangeText={setEndChapter}
+                keyboardType="numeric"
+                mode="outlined"
+                theme={{ colors: { ...theme } }}
+                underlineColor={theme.outline}
+                dense
+                style={styles.rangeInput}
+              />
+            </View>
+          )}
+          <SwitchItem
+            label={getString('novelScreen.exportEpubModal.applyReaderTheme')}
+            value={useAppTheme.value}
+            onPress={useAppTheme.toggle}
+            theme={theme}
+          />
+          <SwitchItem
+            label={getString('novelScreen.exportEpubModal.includeCustomCSS')}
+            value={useCustomCSS.value}
+            onPress={useCustomCSS.toggle}
+            theme={theme}
+          />
+          <SwitchItem
+            label={getString('novelScreen.exportEpubModal.includeCustomJS')}
+            description={getString(
+              'novelScreen.exportEpubModal.customJSWarning',
+            )}
+            value={useCustomJS.value}
+            onPress={useCustomJS.toggle}
+            theme={theme}
+          />
+        </View>
+        <List.InfoItem
+          style={styles.infoItem}
+          title={getString(
+            'novelScreen.exportEpubModal.downloadedChaptersOnly',
+          )}
           theme={theme}
         />
-        {!exportAll.value && (
-          <View style={styles.rangeInputs}>
-            <TextInput
-              label={getString('novelScreen.exportEpubModal.startChapter')}
-              value={startChapter}
-              onChangeText={setStartChapter}
-              keyboardType="numeric"
-              mode="outlined"
-              theme={{ colors: { ...theme } }}
-              underlineColor={theme.outline}
-              dense
-              style={styles.rangeInput}
-            />
-            <TextInput
-              label={getString('novelScreen.exportEpubModal.endChapter')}
-              value={endChapter}
-              onChangeText={setEndChapter}
-              keyboardType="numeric"
-              mode="outlined"
-              theme={{ colors: { ...theme } }}
-              underlineColor={theme.outline}
-              dense
-              style={styles.rangeInput}
-            />
-          </View>
-        )}
-        <SwitchItem
-          label={getString('novelScreen.exportEpubModal.applyReaderTheme')}
-          value={useAppTheme.value}
-          onPress={useAppTheme.toggle}
-          theme={theme}
-        />
-        <SwitchItem
-          label={getString('novelScreen.exportEpubModal.includeCustomCSS')}
-          value={useCustomCSS.value}
-          onPress={useCustomCSS.toggle}
-          theme={theme}
-        />
-        <SwitchItem
-          label={getString('novelScreen.exportEpubModal.includeCustomJS')}
-          description={getString('novelScreen.exportEpubModal.customJSWarning')}
-          value={useCustomJS.value}
-          onPress={useCustomJS.toggle}
-          theme={theme}
-        />
-      </View>
-      <List.InfoItem
-        style={styles.infoItem}
-        title={getString('novelScreen.exportEpubModal.downloadedChaptersOnly')}
-        theme={theme}
-      />
-      <View style={styles.modalFooterCtn}>
-        <Button title={getString('common.submit')} onPress={onSubmit} />
-        <Button title={getString('common.cancel')} onPress={hideModal} />
-      </View>
+        <View style={styles.modalFooterCtn}>
+          <Button title={getString('common.submit')} onPress={onSubmit} />
+          <Button title={getString('common.cancel')} onPress={hideModal} />
+        </View>
+      </KeyboardAwareScrollView>
     </Modal>
   );
 };

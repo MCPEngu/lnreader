@@ -9,7 +9,6 @@ window.reader = new (function () {
     prevChapter,
     batteryLevel,
     autoSaveInterval,
-    DEBUG,
     strings,
   } = initialReaderConfig;
 
@@ -41,6 +40,7 @@ window.reader = new (function () {
   this.chapterHeight = this.chapterElement.scrollHeight + this.paddingTop;
   this.layoutHeight = window.screen.height;
   this.layoutWidth = window.screen.width;
+  // console.log('[PROGRESS_DEBUG] core initialized: layoutHeight=' + this.layoutHeight + ', screenHeight=' + window.screen.height + ', innerHeight=' + window.innerHeight);
 
   this.layoutEvent = undefined;
   this.chapterEndingVisible = van.state(false);
@@ -51,6 +51,7 @@ window.reader = new (function () {
       this.chapterWidth = this.chapterElement.scrollWidth;
     } else {
       this.chapterHeight = this.chapterElement.scrollHeight + this.paddingTop;
+      // console.log('[PROGRESS_DEBUG] current state (refresh): chapterHeight=' + this.chapterHeight + ', scrollY=' + window.scrollY + ', layoutHeight=' + this.layoutHeight + ', innerHeight=' + window.innerHeight);
     }
   };
 
@@ -101,28 +102,20 @@ window.reader = new (function () {
 
   document.onscrollend = () => {
     if (!this.generalSettings.val.pageReader) {
+      const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+      const maxScrollY = scrollHeight - window.innerHeight;
+      const progressToSave = parseInt(
+        maxScrollY > 0 ? (window.scrollY / maxScrollY) * 100 : 100,
+        10,
+      );
+      const finalProgress = progressToSave > 100 ? 100 : progressToSave;
+      // console.log('[PROGRESS_DEBUG] onscrollend: scrollY=' + window.scrollY + ', maxScrollY=' + maxScrollY + ', innerHeight=' + window.innerHeight + ', scrollHeight=' + scrollHeight + ', progress calculation=' + finalProgress + '%');
       this.post({
         type: 'save',
-        data: parseInt(
-          ((window.scrollY + this.layoutHeight) / this.chapterHeight) * 100,
-          10,
-        ),
+        data: finalProgress,
       });
     }
   };
-
-  if (DEBUG) {
-    // eslint-disable-next-line no-global-assign, no-new-object
-    console = new Object();
-    console.log = function (...data) {
-      reader.post({ 'type': 'console', 'msg': data?.join(' ') });
-    };
-    console.debug = console.log;
-    console.info = console.log;
-    console.warn = console.log;
-    console.error = console.log;
-  }
-  // end reader
 })();
 
 window.tts = new (function () {
@@ -407,8 +400,23 @@ window.tts = new (function () {
   };
 
   // UPDATED: Scroll to top or center based on settings with padding for notch/camera
+  // In page reader mode, navigate to the correct page instead of scrolling
   this.scrollToElement = element => {
     if (!element) return;
+
+    // Page reader mode: navigate to the page containing this element
+    if (reader.generalSettings.val.pageReader) {
+      const rect = element.getBoundingClientRect();
+      const chapterRect = reader.chapterElement.getBoundingClientRect();
+      // Calculate offset from the chapter element's left edge
+      const offsetX = rect.left - chapterRect.left;
+      const pageWidth = window.innerWidth;
+      const targetPage = Math.floor(offsetX / pageWidth);
+      if (targetPage !== pageReader.page.val && targetPage >= 0 && targetPage < pageReader.totalPages.val) {
+        pageReader.movePage(targetPage);
+      }
+      return;
+    }
     // Check if element is partially visible (at least some part is in viewport)
     const rect = element.getBoundingClientRect();
     const windowHeight =
@@ -481,6 +489,8 @@ window.pageReader = new (function () {
     initialPageReaderConfig.nextChapterScreenVisible,
   );
   this.chapterEnding = document.getElementsByClassName('transition-chapter')[0];
+  this.navigating = false; // Lock to prevent rapid tap chapter jumps
+  this.initialized = false; // Flag to track if initial page position has been set
 
   this.showChapterEnding = (bool, instant, left) => {
     if (!this.chapterEnding) {
@@ -504,6 +514,9 @@ window.pageReader = new (function () {
   };
 
   this.movePage = destPage => {
+    // Prevent rapid taps from causing chapter jumps
+    if (this.navigating) return;
+
     if (this.chapterEndingVisible.val) {
       if (destPage < 0) {
         this.showChapterEnding(false);
@@ -514,31 +527,47 @@ window.pageReader = new (function () {
         return;
       }
       if (destPage >= this.totalPages.val) {
-        return reader.post({ type: 'next' });
+        this.navigating = true;
+        reader.post({ type: 'next' });
+        return;
       }
     }
     destPage = parseInt(destPage, 10);
     if (destPage < 0) {
+      if (!reader.prevChapter) return;
+      this.navigating = true;
       document.getElementsByClassName('transition-chapter')[0].innerText =
         reader.prevChapter.name;
       this.showChapterEnding(true, false, true);
       setTimeout(() => {
         reader.post({ type: 'prev' });
-      }, 200);
+      }, 250);
       return;
     }
     if (destPage >= this.totalPages.val) {
+      if (!reader.nextChapter) return;
+      this.navigating = true;
       document.getElementsByClassName('transition-chapter')[0].innerText =
         reader.nextChapter.name;
       this.showChapterEnding(true);
       setTimeout(() => {
         reader.post({ type: 'next' });
-      }, 200);
+      }, 250);
       return;
     }
     this.page.val = destPage;
     reader.chapterElement.style.transform =
       'translateX(-' + destPage * 100 + '%)';
+
+    // E-ink refresh: flash opacity to force full screen redraw and reduce ghosting
+    if (reader.generalSettings.val.einkRefreshOnPageTurn) {
+      document.body.style.opacity = '0';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.body.style.opacity = '1';
+        });
+      });
+    }
 
     const newProgress = parseInt(
       ((pageReader.page.val + 1) / pageReader.totalPages.val) * 100,
@@ -565,16 +594,18 @@ window.pageReader = new (function () {
       return;
     }
     if (reader.generalSettings.val.pageReader) {
+      const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+      const maxScrollY = scrollHeight - window.innerHeight;
       const ratio = Math.min(
         0.99,
-        (window.scrollY + reader.layoutHeight) / reader.chapterHeight,
+        maxScrollY > 0 ? window.scrollY / maxScrollY : 1,
       );
       document.body.classList.add('page-reader');
       setTimeout(() => {
         reader.refresh();
         this.totalPages.val = parseInt(
           (reader.chapterWidth + reader.readerSettings.val.padding * 2) /
-            reader.layoutWidth,
+          reader.layoutWidth,
           10,
         );
         this.movePage(this.totalPages.val * ratio);
@@ -584,10 +615,10 @@ window.pageReader = new (function () {
       document.body.classList.remove('page-reader');
       setTimeout(() => {
         reader.refresh();
+        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+        const maxScrollY = scrollHeight - window.innerHeight;
         window.scrollTo({
-          top:
-            (reader.chapterHeight * (this.page.val + 1)) / this.totalPages.val -
-            reader.layoutHeight,
+          top: maxScrollY > 0 ? maxScrollY * ((this.page.val + 1) / this.totalPages.val) : 0,
           behavior: 'smooth',
         });
       }, 100);
@@ -607,11 +638,14 @@ function calculatePages() {
   if (reader.generalSettings.val.pageReader) {
     pageReader.totalPages.val = parseInt(
       (reader.chapterWidth + reader.readerSettings.val.padding * 2) /
-        reader.layoutWidth,
+      reader.layoutWidth,
       10,
     );
 
-    if (initialPageReaderConfig.nextChapterScreenVisible) return;
+    if (initialPageReaderConfig.nextChapterScreenVisible) {
+      pageReader.initialized = true;
+      return;
+    }
 
     pageReader.movePage(
       Math.max(
@@ -621,18 +655,42 @@ function calculatePages() {
         ) - 1,
       ),
     );
+    pageReader.initialized = true;
   } else {
+    const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+    const maxScrollY = scrollHeight - window.innerHeight;
+    const targetTop = maxScrollY > 0 ? (maxScrollY * reader.chapter.progress) / 100 : 0;
+    // console.log('[PROGRESS_DEBUG] calculatePages (scroll to progress): requested progress=' + reader.chapter.progress + '%, calculated targetTop=' + targetTop + ', current maxScroll=' + maxScrollY);
     window.scrollTo({
-      top:
-        (reader.chapterHeight * reader.chapter.progress) / 100 -
-        reader.layoutHeight,
+      top: targetTop,
       behavior: 'smooth',
     });
   }
 }
 
 const ro = new ResizeObserver(() => {
-  if (pageReader.totalPages.val) {
+  if (reader.generalSettings.val.pageReader) {
+    // Recalculate total pages but preserve current page position
+    reader.refresh();
+    const newTotalPages = parseInt(
+      (reader.chapterWidth + reader.readerSettings.val.padding * 2) /
+      reader.layoutWidth,
+      10,
+    );
+    pageReader.totalPages.val = newTotalPages;
+    if (pageReader.initialized) {
+      // After initial load, just clamp current page and re-apply transform
+      if (pageReader.page.val >= newTotalPages) {
+        pageReader.movePage(newTotalPages - 1);
+      } else {
+        // Re-apply current page transform
+        reader.chapterElement.style.transform =
+          'translateX(-' + pageReader.page.val * 100 + '%)';
+      }
+    } else {
+      calculatePages();
+    }
+  } else if (pageReader.totalPages.val) {
     calculatePages();
   }
 });
@@ -668,33 +726,35 @@ window.addEventListener('load', () => {
   document.onclick = e => {
     const { clientX, clientY } = e;
     const { x, y } = {
-      x: clientX / reader.layoutWidth,
-      y: clientY / reader.layoutHeight,
+      x: clientX / window.innerWidth,
+      y: clientY / window.innerHeight,
     };
 
     if (reader.generalSettings.val.pageReader) {
-      const position = detectTapPosition(x, y, true);
-      if (position === 'left') {
-        pageReader.movePage(pageReader.page.val - 1);
-        return;
-      }
-      if (position === 'right') {
-        pageReader.movePage(pageReader.page.val + 1);
-        return;
+      if (reader.generalSettings.val.tapToScroll) {
+        const position = detectTapPosition(x, y, true);
+        if (position === 'left') {
+          pageReader.movePage(pageReader.page.val - 1);
+          return;
+        }
+        if (position === 'right') {
+          pageReader.movePage(pageReader.page.val + 1);
+          return;
+        }
       }
     } else {
       if (reader.generalSettings.val.tapToScroll) {
         const position = detectTapPosition(x, y, false);
         if (position === 'top') {
           window.scrollBy({
-            top: -reader.layoutHeight * 0.75,
+            top: -window.innerHeight * 0.75,
             behavior: 'smooth',
           });
           return;
         }
         if (position === 'bottom') {
           window.scrollBy({
-            top: reader.layoutHeight * 0.75,
+            top: window.innerHeight * 0.75,
             behavior: 'smooth',
           });
           return;
@@ -718,7 +778,7 @@ window.addEventListener('load', () => {
   reader.chapterElement.addEventListener('touchmove', e => {
     if (reader.generalSettings.val.pageReader) {
       const diffX =
-        (e.changedTouches[0].screenX - this.initialX) / reader.layoutWidth;
+        (e.changedTouches[0].screenX - this.initialX) / window.innerWidth;
       reader.chapterElement.style.transition = 'unset';
       reader.chapterElement.style.transform =
         'translateX(-' + (pageReader.page.val - diffX) * 100 + '%)';
@@ -730,7 +790,7 @@ window.addEventListener('load', () => {
     const diffY = e.changedTouches[0].screenY - this.initialY;
     if (reader.generalSettings.val.pageReader) {
       reader.chapterElement.style.transition = '200ms';
-      const diffXPercentage = diffX / reader.layoutWidth;
+      const diffXPercentage = diffX / window.innerWidth;
       if (diffXPercentage < -0.3) {
         pageReader.movePage(pageReader.page.val + 1);
       } else if (diffXPercentage > 0.3) {
@@ -777,17 +837,109 @@ window.addEventListener('load', () => {
         .replace(
           /<br>\s*<br>[^]+/,
           _ =>
-            `${
-              /\/p>/.test(_)
-                ? _.replace(
-                    /<br>\s*<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p\b[^>]*><br>\s*<br>))\s*/g,
-                    '',
-                  )
-                : _
+            `${/\/p>/.test(_)
+              ? _.replace(
+                /<br>\s*<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p\b[^>]*><br>\s*<br>))\s*/g,
+                '',
+              )
+              : _
             }`,
         ) //if p found, delete all double br near p
         .replace(/<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p>\s*<br>))\s*/g, '');
     }
     reader.chapterElement.innerHTML = html;
+  });
+})();
+
+// Auto scroll feature
+(function () {
+  const interact = () => {
+    reader.post({ type: 'user-interaction' });
+  };
+  ['touchstart', 'touchend', 'mousedown', 'mouseup', 'wheel'].forEach(evt => {
+    window.addEventListener(evt, interact, { passive: true });
+  });
+})();
+
+// Debug
+(function () {
+  function formatValueToString(value) {
+    const type = typeof value;
+
+    if (type === 'number' || type === 'boolean' || value == null) {
+      return `${value}`;
+    }
+
+    if (type === 'string') {
+      return `"${value}"`;
+    }
+
+    if (type === 'symbol') {
+      const description = value.description;
+      return description == null ? 'Symbol' : `Symbol(${description})`;
+    }
+
+    if (type === 'function') {
+      const functionName = value.name;
+      return (typeof functionName === 'string' && functionName.length > 0)
+        ? `Function(${functionName})`
+        : 'Function';
+    }
+
+    if (Array.isArray(value)) {
+      const arrayElements = value.map(element => formatValueToString(element));
+      return `[${arrayElements.join(', ')}]`;
+    }
+
+    const rawObjectType = Object.prototype.toString.call(value);
+    const regexMatch = /\[object ([^\]]+)\]/.exec(rawObjectType);
+    let objectType;
+
+    if (regexMatch && regexMatch.length > 1) {
+      objectType = regexMatch[1];
+    } else {
+      return rawObjectType;
+    }
+
+    if (objectType === 'Object') {
+      try {
+        return 'Object(' + JSON.stringify(value) + ')';
+      } catch (error) {
+        return 'Object';
+      }
+    }
+
+    if (value instanceof Error) {
+      return `${value.name}: ${value.message}\n${value.stack}`;
+    }
+
+    return objectType;
+  }
+
+  const methods = ['log', 'debug', 'info', 'warn', 'error'];
+  methods.forEach(method => {
+    const originalMethod = console[method];
+    console[method] = function (...args) {
+      originalMethod.apply(console, args);
+      const safeArgs = args.map(arg => formatValueToString(arg));
+      reader.post({
+        type: 'console',
+        method: method,
+        args: safeArgs
+      });
+    };
+  });
+  window.onerror = function (message, source, lineno, colno, error) {
+    reader.post({
+      type: 'error',
+      msg: message + " at " + source + ":" + lineno + ":" + colno + (error ? "\\n" + error.stack : "")
+    });
+    return true;
+  };
+  window.addEventListener('unhandledrejection', function (event) {
+    reader.post({
+      type: 'error',
+      msg: `Unhandled Rejection: ${event.reason}`
+    });
   });
 })();

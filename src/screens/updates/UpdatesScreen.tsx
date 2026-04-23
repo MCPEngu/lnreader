@@ -95,7 +95,10 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
                 acc: { data: UpdateOverview[]; date: string }[],
                 cur: UpdateOverview,
               ) => {
-                if (acc.length === 0 || acc[acc.length - 1]?.date !== cur.updateDate) {
+                if (
+                  acc.length === 0 ||
+                  acc[acc.length - 1]?.date !== cur.updateDate
+                ) {
                   acc.push({ data: [cur], date: cur.updateDate });
                   return acc;
                 }

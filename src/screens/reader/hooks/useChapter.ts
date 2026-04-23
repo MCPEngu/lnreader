@@ -34,7 +34,7 @@ import { sanitizeChapterText } from '../utils/sanitizeChapterText';
 import { parseChapterNumber } from '@utils/parseChapterNumber';
 import WebView from 'react-native-webview';
 import { useFullscreenMode } from '@hooks';
-import { Dimensions, NativeEventEmitter } from 'react-native';
+import { AppState, Dimensions, NativeEventEmitter } from 'react-native';
 import * as Speech from 'expo-speech';
 import { defaultTo } from 'lodash-es';
 import { showToast } from '@utils/showToast';
@@ -98,6 +98,7 @@ export default function useChapter(
     autoScrollOffset,
     useVolumeButtons,
     volumeButtonsOffset,
+    pageReader: isPageReaderMode,
   } = useChapterGeneralSettings();
   const { incognitoMode } = useLibrarySettings();
   const [error, setError] = useState<string>();
@@ -106,21 +107,37 @@ export default function useChapter(
   const { setImmersiveMode, showStatusAndNavBar } = useFullscreenMode();
 
   const connectVolumeButton = useCallback(() => {
-    const offset = defaultTo(
-      volumeButtonsOffset,
-      Math.round(Dimensions.get('window').height * 0.75),
-    );
     emmiter.addListener('VolumeUp', () => {
-      webViewRef.current?.injectJavaScript(`(()=>{
-        window.scrollBy({top: -${offset}, behavior: 'smooth'})
-      })()`);
+      if (isPageReaderMode) {
+        webViewRef.current?.injectJavaScript(`(()=>{
+          pageReader.movePage(pageReader.page.val - 1);
+        })()`);
+      } else {
+        const offset = defaultTo(
+          volumeButtonsOffset,
+          Math.round(Dimensions.get('window').height * 0.75),
+        );
+        webViewRef.current?.injectJavaScript(`(()=>{
+          window.scrollBy({top: -${offset}, behavior: 'smooth'})
+        })()`);
+      }
     });
     emmiter.addListener('VolumeDown', () => {
-      webViewRef.current?.injectJavaScript(`(()=>{
-        window.scrollBy({top: ${offset}, behavior: 'smooth'})
-      })()`);
+      if (isPageReaderMode) {
+        webViewRef.current?.injectJavaScript(`(()=>{
+          pageReader.movePage(pageReader.page.val + 1);
+        })()`);
+      } else {
+        const offset = defaultTo(
+          volumeButtonsOffset,
+          Math.round(Dimensions.get('window').height * 0.75),
+        );
+        webViewRef.current?.injectJavaScript(`(()=>{
+          window.scrollBy({top: ${offset}, behavior: 'smooth'})
+        })()`);
+      }
     });
-  }, [webViewRef, volumeButtonsOffset]);
+  }, [webViewRef, volumeButtonsOffset, isPageReaderMode]);
 
   useEffect(() => {
     if (useVolumeButtons) {
@@ -420,29 +437,66 @@ export default function useChapter(
     ],
   );
 
-  const scrollInterval = useRef<NodeJS.Timeout>(null);
+  const lastInteractionTime = useRef(Date.now());
+  const autoScrollTimeout = useRef<NodeJS.Timeout>(null);
+
+  const resetAutoScroll = useCallback(() => {
+    lastInteractionTime.current = Date.now();
+  }, []);
+
   useEffect(() => {
-    if (autoScroll) {
-      scrollInterval.current = setInterval(() => {
-        webViewRef.current?.injectJavaScript(`(()=>{
-          window.scrollBy({top:${defaultTo(
-            autoScrollOffset,
-            Dimensions.get('window').height,
-          )},behavior:'smooth'})
-        })()`);
-      }, autoScrollInterval * 1000);
+    let active = true;
+    lastInteractionTime.current = Date.now();
+
+    if (autoScroll && hidden) {
+      const loop = () => {
+        if (!active) return;
+        const now = Date.now();
+        const elapsed = now - lastInteractionTime.current;
+        const delay = autoScrollInterval * 1000 - elapsed;
+
+        if (delay <= 0) {
+          if (AppState.currentState === 'active') {
+            if (isPageReaderMode) {
+              webViewRef.current?.injectJavaScript(`(()=>{
+                pageReader.movePage(pageReader.page.val + 1);
+              })()`);
+            } else {
+              webViewRef.current?.injectJavaScript(`(()=>{
+                window.scrollBy({top:${defaultTo(
+                  autoScrollOffset,
+                  Dimensions.get('window').height,
+                )},behavior:'smooth'})
+              })()`);
+            }
+          }
+          lastInteractionTime.current = Date.now();
+          autoScrollTimeout.current = setTimeout(
+            loop,
+            autoScrollInterval * 1000,
+          );
+        } else {
+          autoScrollTimeout.current = setTimeout(loop, delay);
+        }
+      };
+
+      autoScrollTimeout.current = setTimeout(loop, autoScrollInterval * 1000);
     } else {
-      if (scrollInterval.current) {
-        clearInterval(scrollInterval.current);
-      }
+      if (autoScrollTimeout.current) clearTimeout(autoScrollTimeout.current);
     }
 
     return () => {
-      if (scrollInterval.current) {
-        clearInterval(scrollInterval.current);
-      }
+      active = false;
+      if (autoScrollTimeout.current) clearTimeout(autoScrollTimeout.current);
     };
-  }, [autoScroll, autoScrollInterval, autoScrollOffset, webViewRef]);
+  }, [
+    autoScroll,
+    autoScrollInterval,
+    autoScrollOffset,
+    webViewRef,
+    hidden,
+    isPageReaderMode,
+  ]);
 
   const updateTracker = useCallback(() => {
     const chapterNumber = parseChapterNumber(novel.name, chapter.name);
@@ -481,6 +535,7 @@ export default function useChapter(
       showStatusAndNavBar();
     }
     setHidden(!hidden);
+    resetAutoScroll();
   }, [hidden, setImmersiveMode, showStatusAndNavBar, webViewRef]);
 
   const navigateChapter = useCallback(
@@ -505,6 +560,7 @@ export default function useChapter(
         setTranslateProgress(0);
         originalChapterText.current = '';
 
+        resetAutoScroll();
         getChapter(nextNavChapter);
       } else {
         showToast(
@@ -694,6 +750,7 @@ export default function useChapter(
       translateChapter,
       isTranslated,
       revertTranslation,
+      resetAutoScroll,
     }),
     [
       hidden,
@@ -716,6 +773,7 @@ export default function useChapter(
       translateChapter,
       isTranslated,
       revertTranslation,
+      resetAutoScroll,
     ],
   );
 }

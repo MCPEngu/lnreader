@@ -97,10 +97,7 @@ const NovelScreenList = ({
     refreshNovelMetadata,
   } = useAppSettings();
 
-  const {
-    filter,
-    showChapterTitles = false,
-  } = novelSettings;
+  const { filter, showChapterTitles = false } = novelSettings;
 
   const theme = useTheme();
   const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();

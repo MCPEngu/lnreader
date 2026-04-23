@@ -22,12 +22,19 @@ import expo.modules.ApplicationLifecycleDispatcher
 
 import com.facebook.react.modules.network.OkHttpClientProvider
 import com.facebook.react.modules.network.OkHttpClientFactory
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.dnsoverhttps.DnsOverHttps
+import okhttp3.ResponseBody.Companion.toResponseBody
 import java.net.InetAddress
+import org.jsoup.Jsoup
+import android.webkit.CookieManager
 
 class MainApplication : Application(), ReactApplication {
+
+    private val manager by lazy { CookieManager.getInstance() }
+
     override val reactNativeHost: ReactNativeHost =
         object : DefaultReactNativeHost(this) {
             override fun getPackages(): List<ReactPackage> =
@@ -100,24 +107,53 @@ class MainApplication : Application(), ReactApplication {
                     )
                     .build()
                 val builder = OkHttpClientProvider.createClientBuilder()
-                
+
                 builder.addInterceptor { chain ->
-                    val response = chain.proceed(chain.request())
-                    if ((response.code == 403 || response.code == 503) && 
-                        response.header("Server", "")?.contains("cloudflare", ignoreCase = true) == true) {
-                        Thread {
-                            Thread.sleep(2000)
-                            client?.connectionPool?.evictAll()
-                        }.start()
+                    val request = chain.request()
+                    val response = chain.proceed(request)
+                    val isCloudflareBlock = response.code in ERROR_CODES && response.header("Server") in SERVER_CHECK;
+                    var isCaptcha = false
+                    if (isCloudflareBlock) {
+                        try {
+                            val document = Jsoup.parse(
+                                response.peekBody(Long.MAX_VALUE).string(),
+                                response.request.url.toString(),
+                            )
+                            isCaptcha = document.getElementById("challenge-error-title") != null ||
+                                        document.getElementById("challenge-error-text") != null
+                        } catch (e: Exception) {
+                            // Ignore parse errors
+                        }
+                    }
+                    if (isCaptcha) {
+                        // Clear cookies
+                        removeCookies(request.url, COOKIE_NAMES)
                     }
                     response
                 }
-                
                 builder.dns(dns)
-                client = builder.build()
-                return client!!
+                return builder.build()
             }
         })
+    }
+
+    private fun removeCookies(url: HttpUrl, cookieNames: List<String>? = null, maxAge: Int = -1): Int {
+        val urlString = url.toString()
+        val cookies = manager.getCookie(urlString) ?: return 0
+
+        fun List<String>.filterNames(): List<String> {
+            return if (cookieNames != null) {
+                this.filter { it in cookieNames }
+            } else {
+                this
+            }
+        }
+
+        return cookies.split(";")
+            .map { it.substringBefore("=") }
+            .filterNames()
+            .onEach { manager.setCookie(urlString, "$it=;Max-Age=$maxAge") }
+            .count()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -125,3 +161,7 @@ class MainApplication : Application(), ReactApplication {
         ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
     }
 }
+
+private val ERROR_CODES = listOf(403, 503)
+private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
+private val COOKIE_NAMES = listOf("cf_clearance")

@@ -101,11 +101,11 @@ export class TranslateManager {
       }
     });
 
-    console.log("textsToTranslate:", textsToTranslate.length);
+    console.log('textsToTranslate:', textsToTranslate.length);
 
     if (textsToTranslate.length === 0) {
       if (onProgress) onProgress(100);
-      return "<h2>Error: Unable to translate text due to invalid HTML format. The plugin returned content without standard wrapping tags.</h2>";
+      return '<h2>Error: Unable to translate text due to invalid HTML format. The plugin returned content without standard wrapping tags.</h2>';
     }
 
     const engine = this.getEngine(config);
@@ -117,7 +117,7 @@ export class TranslateManager {
       signal,
     );
 
-    console.log("translatedTexts:", translatedTexts.length);
+    console.log('translatedTexts:', translatedTexts.length);
 
     // Replace properties back
     for (let i = 0; i < elementRefs.length; i++) {
@@ -135,10 +135,15 @@ export class TranslateManager {
           $ref.text(translatedTexts[i]);
         }
       } else {
-        console.warn('Translated text is empty, removing element', __DEV__ ? $ref : i);
+        console.warn(
+          'Translated text is empty, removing element',
+          __DEV__ ? $ref : i,
+        );
         $ref.remove();
       }
     }
+
+    console.log('Stop translate service');
 
     // Clean up any remaining data attributes just in case
     $('[data-translatable-block]').removeAttr('data-translatable-block');

@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Portal } from 'react-native-paper';
 import * as Clipboard from 'expo-clipboard';
 
@@ -14,7 +8,9 @@ import { ThemeColors } from '@theme/types';
 import { getString } from '@strings/translations';
 import { showToast } from '@utils/showToast';
 import DebugLogService, { LogEntry, LogLevel } from '@services/DebugLogService';
-import ServiceManager, { type QueuedBackgroundTask } from '@services/ServiceManager';
+import ServiceManager, {
+  type QueuedBackgroundTask,
+} from '@services/ServiceManager';
 import { useMMKVObject } from 'react-native-mmkv';
 
 const LEVEL_COLORS: Record<LogLevel, string> = {
@@ -44,10 +40,7 @@ const RESTORE_TASK_NAMES = [
   'SELF_HOST_RESTORE',
 ] as const;
 
-const ALL_BACKUP_RESTORE_NAMES = [
-  ...BACKUP_TASK_NAMES,
-  ...RESTORE_TASK_NAMES,
-];
+const ALL_BACKUP_RESTORE_NAMES = [...BACKUP_TASK_NAMES, ...RESTORE_TASK_NAMES];
 
 interface BackupLogModalProps {
   theme: ThemeColors;
@@ -66,9 +59,7 @@ export default function BackupLogModal({ theme }: BackupLogModalProps) {
 
   // Determine if a backup or restore task is currently active
   const hasActiveBackupRestore = (taskQueue ?? []).some(
-    t =>
-      t?.task?.name &&
-      ALL_BACKUP_RESTORE_NAMES.includes(t.task.name as any),
+    t => t?.task?.name && ALL_BACKUP_RESTORE_NAMES.includes(t.task.name as any),
   );
 
   const hasActiveBackupOnly = (taskQueue ?? []).some(
@@ -115,10 +106,7 @@ export default function BackupLogModal({ theme }: BackupLogModalProps) {
 
   const copyLog = useCallback(() => {
     const text = entries
-      .map(
-        e =>
-          `[${e.timestamp.toLocaleTimeString()}] ${e.message}`,
-      )
+      .map(e => `[${e.timestamp.toLocaleTimeString()}] ${e.message}`)
       .join('\n');
     Clipboard.setStringAsync(text);
     showToast(getString('common.copiedToClipboard', { name: 'Backup Log' }));
@@ -128,7 +116,10 @@ export default function BackupLogModal({ theme }: BackupLogModalProps) {
     ServiceManager.manager.removeTasksByName('LOCAL_BACKUP');
     ServiceManager.manager.removeTasksByName('DRIVE_BACKUP');
     ServiceManager.manager.removeTasksByName('SELF_HOST_BACKUP');
-    DebugLogService.addEntry('warn', `${BACKUP_LOG_TAG} Backup cancelled by user`);
+    DebugLogService.addEntry(
+      'warn',
+      `${BACKUP_LOG_TAG} Backup cancelled by user`,
+    );
     showToast(getString('backupLogScreen.backupCancelled'));
   }, []);
 

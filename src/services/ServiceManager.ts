@@ -260,34 +260,22 @@ export default class ServiceManager {
             this.setMeta.bind(this),
           );
         case 'DRIVE_RESTORE':
-          return await driveRestore(
-            task.task.data,
-            this.setMeta.bind(this),
-          );
+          return await driveRestore(task.task.data, this.setMeta.bind(this));
         case 'SELF_HOST_BACKUP':
           return await createSelfHostBackup(
             task.task.data,
             this.setMeta.bind(this),
           );
         case 'SELF_HOST_RESTORE':
-          return await selfHostRestore(
-            task.task.data,
-            this.setMeta.bind(this),
-          );
+          return await selfHostRestore(task.task.data, this.setMeta.bind(this));
         case 'LOCAL_BACKUP':
           return await createBackup(this.setMeta.bind(this), signal);
         case 'LOCAL_RESTORE':
           return await restoreBackup(this.setMeta.bind(this));
         case 'MIGRATE_NOVEL':
-          return await migrateNovel(
-            task.task.data,
-            this.setMeta.bind(this),
-          );
+          return await migrateNovel(task.task.data, this.setMeta.bind(this));
         case 'DOWNLOAD_CHAPTER':
-          return await downloadChapter(
-            task.task.data,
-            this.setMeta.bind(this),
-          );
+          return await downloadChapter(task.task.data, this.setMeta.bind(this));
       }
     } finally {
       this.currentAbortController = null;

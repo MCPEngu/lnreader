@@ -11,7 +11,12 @@ import { AboutScreenProps } from '@navigators/types';
 import { GIT_HASH, RELEASE_DATE, BUILD_TYPE } from '@env';
 import * as Clipboard from 'expo-clipboard';
 import { version } from '../../../package.json';
-import { APP_GITHUB, APP_WEBSITE, DISCORD_INVITE, PLUGIN_GITHUB } from '@utils/constants/metadata';
+import {
+  APP_GITHUB,
+  APP_WEBSITE,
+  DISCORD_INVITE,
+  PLUGIN_GITHUB,
+} from '@utils/constants/metadata';
 import { fetchUpdateInfo } from '@hooks/common/useGithubUpdateChecker';
 import { showToast } from '@utils/showToast';
 
@@ -88,9 +93,7 @@ const AboutScreen = ({ navigation }: AboutScreenProps) => {
           <List.Item
             title={getString('aboutScreen.checkForUpdates')}
             description={
-              checkingUpdates
-                ? getString('common.loading')
-                : undefined
+              checkingUpdates ? getString('common.loading') : undefined
             }
             onPress={handleCheckForUpdates}
             theme={theme}
@@ -98,9 +101,7 @@ const AboutScreen = ({ navigation }: AboutScreenProps) => {
           <List.Item
             title={getString('aboutScreen.whatsNew')}
             onPress={() =>
-              Linking.openURL(
-                `${APP_GITHUB}/releases/tag/v${version}`,
-              )
+              Linking.openURL(`${APP_GITHUB}/releases/tag/v${version}`)
             }
             theme={theme}
           />
@@ -120,17 +121,13 @@ const AboutScreen = ({ navigation }: AboutScreenProps) => {
           <List.Item
             title={getString('aboutScreen.github')}
             description={APP_GITHUB}
-            onPress={() =>
-              Linking.openURL(APP_GITHUB)
-            }
+            onPress={() => Linking.openURL(APP_GITHUB)}
             theme={theme}
           />
           <List.Item
             title={getString('aboutScreen.plugins')}
             description={PLUGIN_GITHUB}
-            onPress={() =>
-              Linking.openURL(PLUGIN_GITHUB)
-            }
+            onPress={() => Linking.openURL(PLUGIN_GITHUB)}
             theme={theme}
           />
           <List.Item

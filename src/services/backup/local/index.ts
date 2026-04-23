@@ -110,7 +110,10 @@ export const createBackup = async (
       isRunning: false,
     }));
 
-    DebugLogService.addEntry('info', `${BTAG} ✅ Backup completed successfully`);
+    DebugLogService.addEntry(
+      'info',
+      `${BTAG} ✅ Backup completed successfully`,
+    );
     showToast(getString('backupScreen.backupCreated'));
   } catch (error: any) {
     setMeta?.(meta => ({
@@ -120,7 +123,10 @@ export const createBackup = async (
     if (signal?.aborted) {
       DebugLogService.addEntry('warn', `${BTAG} ⚠️ Backup was cancelled`);
     } else {
-      DebugLogService.addEntry('error', `${BTAG} ❌ Backup failed: ${error.message}`);
+      DebugLogService.addEntry(
+        'error',
+        `${BTAG} ❌ Backup failed: ${error.message}`,
+      );
       showToast(error.message);
     }
   }
@@ -213,14 +219,20 @@ export const restoreBackup = async (
       isRunning: false,
     }));
 
-    DebugLogService.addEntry('info', `${BTAG} ✅ Restore completed successfully`);
+    DebugLogService.addEntry(
+      'info',
+      `${BTAG} ✅ Restore completed successfully`,
+    );
     showToast(getString('backupScreen.backupRestored'));
   } catch (error: any) {
     setMeta?.(meta => ({
       ...meta,
       isRunning: false,
     }));
-    DebugLogService.addEntry('error', `${BTAG} ❌ Restore failed: ${error.message}`);
+    DebugLogService.addEntry(
+      'error',
+      `${BTAG} ❌ Restore failed: ${error.message}`,
+    );
     showToast(error.message);
   }
 };

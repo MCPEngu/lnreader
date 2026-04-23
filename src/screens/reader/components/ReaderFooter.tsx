@@ -29,8 +29,14 @@ const ChapterFooter = ({
   navigation,
   openDrawer,
 }: ChapterFooterProps) => {
-  const { novel, chapter, nextChapter, prevChapter, navigateChapter, isTranslating } =
-    useChapterContext();
+  const {
+    novel,
+    chapter,
+    nextChapter,
+    prevChapter,
+    navigateChapter,
+    isTranslating,
+  } = useChapterContext();
   const theme = useTheme();
   const rippleConfig = {
     color: theme.rippleColor,
@@ -154,7 +160,11 @@ const ChapterFooter = ({
           <IconButton
             icon="cog-outline"
             size={26}
-            iconColor={isTranslating ? color(theme.onSurface).alpha(0.38).string() : theme.onSurface}
+            iconColor={
+              isTranslating
+                ? color(theme.onSurface).alpha(0.38).string()
+                : theme.onSurface
+            }
           />
         </Pressable>
         <Pressable

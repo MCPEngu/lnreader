@@ -65,10 +65,10 @@ export interface AniListResponseSearchNovel {
   };
 }
 export interface AniListResponseError {
-  data: null,
+  data: null;
   errors: {
-    message: string,
-    status: number,
+    message: string;
+    status: number;
   }[];
 }
 
@@ -113,7 +113,9 @@ export const aniListTracker = {
   // AniList does not support refresh tokens, so we can't re-authenticate the user.
   revalidate: undefined,
   handleSearch: async (search, auth) => {
-    const resp = (await queryAniList(searchQuery, { search }, auth)) as AniListResponseSearchNovel | AniListResponseError;
+    const resp = (await queryAniList(searchQuery, { search }, auth)) as
+      | AniListResponseSearchNovel
+      | AniListResponseError;
     const { data } = resp;
     return data?.Page.media.map((m: any) => {
       return {

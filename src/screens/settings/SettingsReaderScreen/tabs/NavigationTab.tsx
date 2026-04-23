@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import {
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+} from '@gorhom/bottom-sheet';
 import { defaultTo } from 'lodash-es';
 import { useTheme, useChapterGeneralSettings } from '@hooks/persisted';
 import { getString } from '@strings/translations';
@@ -20,6 +23,7 @@ const NavigationTab: React.FC = () => {
     autoScrollInterval = 10,
     autoScrollOffset = null,
     tapToScroll = false,
+    einkRefreshOnPageTurn = false,
     setChapterGeneralSettings,
   } = useChapterGeneralSettings();
 
@@ -47,7 +51,8 @@ const NavigationTab: React.FC = () => {
         {useVolumeButtons && (
           <View style={styles.inputContainer}>
             <TextInput
-              label={getString('readerSettings.volumeButtonsOffset' as any)}
+              render={props => <BottomSheetTextInput {...(props as any)} />}
+              label={getString('readerSettings.volumeButtonsOffset')}
               mode="outlined"
               keyboardType="numeric"
               defaultValue={defaultTo(
@@ -101,6 +106,19 @@ const NavigationTab: React.FC = () => {
           onPress={() => setChapterGeneralSettings({ pageReader: !pageReader })}
           theme={theme}
         />
+        {pageReader ? (
+          <SettingSwitch
+            label={getString('readerSettings.einkRefreshOnPageTurn')}
+            description={getString('readerSettings.einkRefreshOnPageTurnDesc')}
+            value={einkRefreshOnPageTurn}
+            onPress={() =>
+              setChapterGeneralSettings({
+                einkRefreshOnPageTurn: !einkRefreshOnPageTurn,
+              })
+            }
+            theme={theme}
+          />
+        ) : null}
       </View>
 
       <View style={styles.section}>
@@ -117,6 +135,7 @@ const NavigationTab: React.FC = () => {
           <>
             <View style={styles.inputContainer}>
               <TextInput
+                render={props => <BottomSheetTextInput {...(props as any)} />}
                 label={getString('readerSettings.autoScrollInterval')}
                 mode="outlined"
                 keyboardType="numeric"
@@ -134,6 +153,7 @@ const NavigationTab: React.FC = () => {
             </View>
             <View style={styles.inputContainer}>
               <TextInput
+                render={props => <BottomSheetTextInput {...(props as any)} />}
                 label={getString('readerSettings.autoScrollOffset')}
                 mode="outlined"
                 keyboardType="numeric"

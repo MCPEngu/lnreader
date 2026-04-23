@@ -376,7 +376,7 @@ const NovelInfoHeader = ({
                   <NovelInfo theme={theme}>
                     {(novel.id !== 'NO_ID'
                       ? // @ts-expect-error status might be null or undefined
-                      translateNovelStatus(novel.status)
+                        translateNovelStatus(novel.status)
                       : getString('novelScreen.unknownStatus')) +
                       ' • ' +
                       pluginName}

@@ -6,11 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import {
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+} from '@gorhom/bottom-sheet';
 import { useTheme, useTranslateSettings } from '@hooks/persisted';
-import type {
-  LLMProviderSupported,
-  TranslateSettings,
+import {
+  type LLMProviderSupported,
+  type TranslateSettings,
+  initialTranslateSettings,
 } from '@hooks/persisted/useSettings';
 import { List, Button } from '@components/index';
 import { Portal, Modal, TextInput, Menu, Switch } from 'react-native-paper';
@@ -43,7 +47,11 @@ const PROVIDERS: {
     endpoint: 'https://openrouter.ai/api/v1',
   },
   { label: 'Groq', value: 'groq', endpoint: 'https://api.groq.com/openai/v1' },
-  { label: 'OpenAI Compatible API (Custom)', value: 'custom', endpoint: 'http://localhost:1234/v1' },
+  {
+    label: 'OpenAI Compatible API (Custom)',
+    value: 'custom',
+    endpoint: 'http://localhost:1234/v1',
+  },
 ];
 
 interface LanguagePickerModalProps {
@@ -133,6 +141,15 @@ const TranslateTab: React.FC = () => {
   } = useTranslateSettings();
 
   const { revertTranslation, isTranslated } = useChapterContext();
+
+  React.useEffect(() => {
+    if (!llmSystemPrompt || !llmSystemPrompt.trim()) {
+      _setTranslateSettings({
+        llmSystemPrompt: initialTranslateSettings.llmSystemPrompt,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Wrap setTranslateSettings: when any translation-affecting setting changes,
   // revert to original text so the user doesn't end up with double-translated text.
@@ -249,11 +266,7 @@ const TranslateTab: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          <View
-            style={[
-              styles.settingItem,
-            ]}
-          >
+          <View style={[styles.settingItem]}>
             <Text style={[styles.label, { color: theme.onSurface }]}>
               {getString(
                 'readerScreen.bottomSheet.translateTab.preTranslateNextChapter',
@@ -315,6 +328,7 @@ const TranslateTab: React.FC = () => {
 
               {llmProvider === 'custom' && (
                 <TextInput
+                  render={props => <BottomSheetTextInput {...(props as any)} />}
                   label={getString(
                     'readerScreen.bottomSheet.translateTab.endpointUrl',
                   )}
@@ -335,6 +349,7 @@ const TranslateTab: React.FC = () => {
                 />
               )}
               <TextInput
+                render={props => <BottomSheetTextInput {...(props as any)} />}
                 label={getString(
                   'readerScreen.bottomSheet.translateTab.apiKey',
                 )}
@@ -354,6 +369,7 @@ const TranslateTab: React.FC = () => {
               />
               <View style={styles.modelRow}>
                 <TextInput
+                  render={props => <BottomSheetTextInput {...(props as any)} />}
                   label={getString(
                     'readerScreen.bottomSheet.translateTab.modelName',
                   )}
@@ -385,6 +401,7 @@ const TranslateTab: React.FC = () => {
               </View>
 
               <TextInput
+                render={props => <BottomSheetTextInput {...(props as any)} />}
                 label={getString(
                   'readerScreen.bottomSheet.translateTab.systemPrompt',
                 )}

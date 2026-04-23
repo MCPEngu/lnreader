@@ -109,7 +109,9 @@ const MainNavigator = () => {
     >
       <LibraryContextProvider>
         <UpdateContextProvider>
-          {isNewVersion && <NewUpdateDialog newVersion={latestRelease} />}
+          {isNewVersion && latestRelease && (
+            <NewUpdateDialog newVersion={latestRelease} />
+          )}
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="BottomNavigator" component={BottomNavigator} />
             <Stack.Screen name="ReaderStack" component={ReaderStack} />

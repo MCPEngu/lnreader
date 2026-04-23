@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
 import {
-  View,
-  StyleSheet,
-  Text,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+} from '@gorhom/bottom-sheet';
 import { TextInput, Portal } from 'react-native-paper';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -133,11 +129,7 @@ if (title) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={100}
-    >
+    <>
       <BottomSheetScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -207,6 +199,7 @@ if (title) {
         {/* Code Editor */}
         <View style={styles.editorContainer}>
           <TextInput
+            render={props => <BottomSheetTextInput {...(props as any)} />}
             mode="flat"
             value={activeCodeTab === 'css' ? cssValue : jsValue}
             onChangeText={text =>
@@ -292,7 +285,7 @@ if (title) {
           theme={theme}
         />
       </Portal>
-    </KeyboardAvoidingView>
+    </>
   );
 };
 

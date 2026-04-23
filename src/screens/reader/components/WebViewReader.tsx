@@ -54,7 +54,7 @@ const onLogMessage = (payload: { nativeEvent: { data: string } }) => {
     if (dataPayload) {
       if (dataPayload.type === 'console') {
         /* eslint-disable no-console */
-        console.info(`[WebView]`, dataPayload.msg);
+        console[dataPayload.method as 'log'](`[WebView]`, ...dataPayload.args);
       } else if (dataPayload.type === 'error') {
         console.error(`[WebView Error]`, dataPayload.msg);
       }
@@ -81,6 +81,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     nextChapter,
     prevChapter,
     webViewRef,
+    resetAutoScroll,
   } = useChapterContext();
   const theme = useTheme();
   const { bottom } = useSafeAreaInsets();
@@ -434,6 +435,9 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           return;
         }
         switch (event.type) {
+          case 'user-interaction':
+            resetAutoScroll();
+            break;
           case 'tts-queue': {
             const payload = event.data as
               | { queue?: unknown; startIndex?: unknown }

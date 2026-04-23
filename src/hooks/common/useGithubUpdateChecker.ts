@@ -53,14 +53,16 @@ export const fetchUpdateInfo = async (): Promise<GithubUpdate> => {
         const data = await res.json();
         const remoteCommitHash = parseCommitHash(data.body || '');
 
-        if (remoteCommitHash && remoteCommitHash.slice(0, 8) !== GIT_HASH.slice(0, 8)) {
+        if (
+          remoteCommitHash &&
+          remoteCommitHash.slice(0, 8) !== GIT_HASH.slice(0, 8)
+        ) {
           return {
             isNewVersion: true,
             latestRelease: {
               tag_name: `beta (${remoteCommitHash})`,
               body: data.body || '',
-              downloadUrl:
-                data.assets?.[0]?.browser_download_url || '',
+              downloadUrl: data.assets?.[0]?.browser_download_url || '',
               commitHash: remoteCommitHash,
             },
           };
@@ -83,8 +85,7 @@ export const fetchUpdateInfo = async (): Promise<GithubUpdate> => {
             latestRelease: {
               tag_name: data.tag_name,
               body: data.body || '',
-              downloadUrl:
-                data.assets?.[0]?.browser_download_url || '',
+              downloadUrl: data.assets?.[0]?.browser_download_url || '',
             },
           };
         }
@@ -139,51 +140,51 @@ export const useGithubUpdateChecker = (): GithubUpdate => {
 // export const useGithubUpdateChecker = (): GithubUpdate => {
 //   const latestReleaseUrl =
 //     `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases/latest`;
-// 
+//
 //   const [checking, setChecking] = useState(true);
 //   const [latestRelease, setLatestRelease] = useState<any>();
-// 
+//
 //   const shouldCheckForUpdate = (): boolean => {
 //     const lastCheckTime = MMKVStorage.getNumber(LAST_UPDATE_CHECK_KEY);
 //     if (!lastCheckTime) {
 //       return true;
 //     }
-// 
+//
 //     const now = Date.now();
 //     const timeSinceLastCheck = now - lastCheckTime;
-// 
+//
 //     return timeSinceLastCheck >= ONE_DAY_MS;
 //   };
-// 
+//
 //   const checkForRelease = useCallback(async () => {
 //     if (!shouldCheckForUpdate()) {
 //       setChecking(false);
 //       return;
 //     }
-// 
+//
 //     try {
 //       const res = await fetch(latestReleaseUrl);
-// 
+//
 //       if (!res.ok) {
 //         setChecking(false);
 //         return;
 //       }
-// 
+//
 //       const data = await res.json();
-// 
+//
 //       if (!data || !data.tag_name) {
 //         setChecking(false);
 //         return;
 //       }
-// 
+//
 //       const release = {
 //         tag_name: data.tag_name,
 //         body: data.body,
 //         downloadUrl: data.assets?.[0]?.browser_download_url || undefined,
 //       };
-// 
+//
 //       MMKVStorage.set(LAST_UPDATE_CHECK_KEY, Date.now());
-// 
+//
 //       setLatestRelease(release);
 //       setChecking(false);
 //     } catch {
@@ -191,27 +192,27 @@ export const useGithubUpdateChecker = (): GithubUpdate => {
 //       setChecking(false);
 //     }
 //   }, []);
-// 
+//
 //   const isNewVersion = (versionTag: string) => {
 //     const currentVersion = `${version}`;
 //     const regex = /[^\d.]/;
-// 
+//
 //     const newVersion = versionTag.replace(regex, '');
-// 
+//
 //     return newer(newVersion, currentVersion);
 //   };
-// 
+//
 //   useEffect(() => {
 //     checkForRelease();
 //   }, [checkForRelease]);
-// 
+//
 //   if (!checking && latestRelease?.tag_name) {
 //     return {
 //       latestRelease,
 //       isNewVersion: isNewVersion(latestRelease.tag_name),
 //     };
 //   }
-// 
+//
 //   return {
 //     latestRelease: undefined,
 //     isNewVersion: false,

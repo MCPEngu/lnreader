@@ -1,6 +1,8 @@
 import { isNil } from 'lodash-es';
 
-const basicRegex = new RegExp(/(?<=ch[^\d]*[\s]*)([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?/);
+const basicRegex = new RegExp(
+  /(?<=ch[^\d]*[\s]*)([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?/,
+);
 const numberRegex = new RegExp(/([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?/);
 const unwantedWhiteSpaceRegex = new RegExp(/\s(?=extra|special|omake)/g);
 const unwantedRegex = new RegExp(

@@ -95,6 +95,7 @@ export interface ChapterGeneralSettings {
   bionicReading: boolean;
   tapToScroll: boolean;
   TTSEnable: boolean;
+  einkRefreshOnPageTurn: boolean;
 }
 
 export interface ReaderTheme {
@@ -216,6 +217,7 @@ export const initialChapterGeneralSettings: ChapterGeneralSettings = {
   bionicReading: false,
   tapToScroll: false,
   TTSEnable: true,
+  einkRefreshOnPageTurn: false,
 };
 
 export const initialChapterReaderSettings: ChapterReaderSettings = {
@@ -420,7 +422,13 @@ export const useTranslateSettings = () => {
 
 // --- Security Settings ---
 
-export type LockOnBackground = 'always' | '1min' | '2min' | '5min' | '10min' | 'never';
+export type LockOnBackground =
+  | 'always'
+  | '1min'
+  | '2min'
+  | '5min'
+  | '10min'
+  | 'never';
 export type ScreenProtection = 'always' | 'incognito' | 'never';
 
 export interface SecuritySettings {

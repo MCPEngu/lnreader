@@ -16,10 +16,9 @@ export default function StorageUsageSection() {
   const [cacheSize, setCacheSize] = useState<number>(0);
   const [freeSpace, setFreeSpace] = useState<number>(constants.FreeSpace);
 
-  const interactionTaskRef =
-    useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(
-      null,
-    );
+  const interactionTaskRef = useRef<ReturnType<
+    typeof InteractionManager.runAfterInteractions
+  > | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelPendingFetchStorageInfo = () => {
     if (interactionTaskRef.current) {

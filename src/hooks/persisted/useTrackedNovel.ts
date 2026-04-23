@@ -160,7 +160,11 @@ export const useTrackedNovel = (novelId: number | 'NO_ID') => {
       };
 
       return getTracker(tracker.name)
-        .updateUserListEntry(currentTrackedNovel.id, mergedPayload, tracker.auth)
+        .updateUserListEntry(
+          currentTrackedNovel.id,
+          mergedPayload,
+          tracker.auth,
+        )
         .then((res: UserListEntry) => {
           const updatedNovel = {
             ...currentTrackedNovel,

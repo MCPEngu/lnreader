@@ -13,16 +13,31 @@ import { showToast } from '@utils/showToast';
 
 const LOCK_ON_BG_OPTIONS = [
   { label: 'securitySettingsScreen.always' as const, value: 'always' as const },
-  { label: 'securitySettingsScreen.after1Min' as const, value: '1min' as const },
-  { label: 'securitySettingsScreen.after2Min' as const, value: '2min' as const },
-  { label: 'securitySettingsScreen.after5Min' as const, value: '5min' as const },
-  { label: 'securitySettingsScreen.after10Min' as const, value: '10min' as const },
+  {
+    label: 'securitySettingsScreen.after1Min' as const,
+    value: '1min' as const,
+  },
+  {
+    label: 'securitySettingsScreen.after2Min' as const,
+    value: '2min' as const,
+  },
+  {
+    label: 'securitySettingsScreen.after5Min' as const,
+    value: '5min' as const,
+  },
+  {
+    label: 'securitySettingsScreen.after10Min' as const,
+    value: '10min' as const,
+  },
   { label: 'securitySettingsScreen.never' as const, value: 'never' as const },
 ];
 
 const SCREEN_PROTECTION_OPTIONS = [
   { label: 'securitySettingsScreen.always' as const, value: 'always' as const },
-  { label: 'securitySettingsScreen.incognitoOnly' as const, value: 'incognito' as const },
+  {
+    label: 'securitySettingsScreen.incognitoOnly' as const,
+    value: 'incognito' as const,
+  },
   { label: 'securitySettingsScreen.never' as const, value: 'never' as const },
 ];
 
@@ -79,14 +94,18 @@ const SettingsSecurityScreen = ({ navigation }: any) => {
 
   const getLockBgLabel = (): string => {
     const option = LOCK_ON_BG_OPTIONS.find(o => o.value === lockOnBackground);
-    return option ? getString(option.label) : getString('securitySettingsScreen.always');
+    return option
+      ? getString(option.label)
+      : getString('securitySettingsScreen.always');
   };
 
   const getScreenProtLabel = (): string => {
     const option = SCREEN_PROTECTION_OPTIONS.find(
       o => o.value === screenProtection,
     );
-    return option ? getString(option.label) : getString('securitySettingsScreen.never');
+    return option
+      ? getString(option.label)
+      : getString('securitySettingsScreen.never');
   };
 
   return (
@@ -141,10 +160,7 @@ const SettingsSecurityScreen = ({ navigation }: any) => {
           {LOCK_ON_BG_OPTIONS.map(option => (
             <Pressable
               key={option.value}
-              style={[
-                styles.radioRow,
-                { borderBottomColor: theme.outline },
-              ]}
+              style={[styles.radioRow, { borderBottomColor: theme.outline }]}
               android_ripple={{ color: theme.rippleColor }}
               onPress={() => {
                 withAuth(() => {
@@ -153,12 +169,7 @@ const SettingsSecurityScreen = ({ navigation }: any) => {
                 });
               }}
             >
-              <View
-                style={[
-                  styles.radioOuter,
-                  { borderColor: theme.primary },
-                ]}
-              >
+              <View style={[styles.radioOuter, { borderColor: theme.primary }]}>
                 {lockOnBackground === option.value && (
                   <View
                     style={[
@@ -175,32 +186,21 @@ const SettingsSecurityScreen = ({ navigation }: any) => {
           ))}
         </Modal>
 
-        <Modal
-          visible={screenProtModalVisible}
-          onDismiss={hideScreenProtModal}
-        >
+        <Modal visible={screenProtModalVisible} onDismiss={hideScreenProtModal}>
           <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
             {getString('securitySettingsScreen.screenProtection')}
           </Text>
           {SCREEN_PROTECTION_OPTIONS.map(option => (
             <Pressable
               key={option.value}
-              style={[
-                styles.radioRow,
-                { borderBottomColor: theme.outline },
-              ]}
+              style={[styles.radioRow, { borderBottomColor: theme.outline }]}
               android_ripple={{ color: theme.rippleColor }}
               onPress={() => {
                 setSecuritySettings({ screenProtection: option.value });
                 hideScreenProtModal();
               }}
             >
-              <View
-                style={[
-                  styles.radioOuter,
-                  { borderColor: theme.primary },
-                ]}
-              >
+              <View style={[styles.radioOuter, { borderColor: theme.primary }]}>
                 {screenProtection === option.value && (
                   <View
                     style={[

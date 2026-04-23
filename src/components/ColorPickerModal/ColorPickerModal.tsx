@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Portal, TextInput } from 'react-native-paper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Modal } from '@components';
 import { ThemeColors } from '../../theme/types';
 
@@ -74,44 +75,46 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   return (
     <Portal>
       <Modal visible={visible} onDismiss={onDismiss}>
-        <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
-          {title}
-        </Text>
-        {showAccentColors ? (
-          <FlatList
-            contentContainerStyle={styles.marginBottom}
-            data={accentColors}
-            numColumns={4}
-            keyExtractor={item => item}
-            renderItem={({ item }) => (
-              <View style={[styles.item, { backgroundColor: item }]}>
-                <Pressable
-                  style={styles.flex}
-                  android_ripple={{
-                    color: 'rgba(0,0,0,0.12)',
-                  }}
-                  onPress={() => {
-                    onSubmit(item);
-                    closeModal();
-                  }}
-                />
-              </View>
-            )}
+        <KeyboardAwareScrollView>
+          <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
+            {title}
+          </Text>
+          {showAccentColors ? (
+            <FlatList
+              contentContainerStyle={styles.marginBottom}
+              data={accentColors}
+              numColumns={4}
+              keyExtractor={item => item}
+              renderItem={({ item }) => (
+                <View style={[styles.item, { backgroundColor: item }]}>
+                  <Pressable
+                    style={styles.flex}
+                    android_ripple={{
+                      color: 'rgba(0,0,0,0.12)',
+                    }}
+                    onPress={() => {
+                      onSubmit(item);
+                      closeModal();
+                    }}
+                  />
+                </View>
+              )}
+            />
+          ) : null}
+          <TextInput
+            value={text}
+            defaultValue={typeof color === 'string' ? color : ''}
+            placeholder="Hex Color Code (E.g. #3399FF)"
+            onChangeText={onChangeText}
+            onSubmitEditing={onSubmitEditing}
+            mode="outlined"
+            theme={{ colors: { ...theme } }}
+            underlineColor={theme.outline}
+            dense
+            error={Boolean(error)}
           />
-        ) : null}
-        <TextInput
-          value={text}
-          defaultValue={typeof color === 'string' ? color : ''}
-          placeholder="Hex Color Code (E.g. #3399FF)"
-          onChangeText={onChangeText}
-          onSubmitEditing={onSubmitEditing}
-          mode="outlined"
-          theme={{ colors: { ...theme } }}
-          underlineColor={theme.outline}
-          dense
-          error={Boolean(error)}
-        />
-        <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>{error}</Text>
+        </KeyboardAwareScrollView>
       </Modal>
     </Portal>
   );

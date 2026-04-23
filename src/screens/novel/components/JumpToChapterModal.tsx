@@ -6,6 +6,7 @@ import {
   TextInput as RNTextInput,
 } from 'react-native';
 import { getString } from '@strings/translations';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Button, Modal, SwitchItem } from '@components';
 
 import { Portal, Text } from 'react-native-paper';
@@ -189,52 +190,54 @@ const JumpToChapterModal = ({
   return (
     <Portal>
       <Modal visible={modalVisible} onDismiss={onDismiss}>
-        <View>
-          <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
-            {getString('novelScreen.jumpToChapterModal.jumpToChapter')}
-          </Text>
-          <RNTextInput
-            ref={inputRef}
-            placeholder={placeholder}
-            placeholderTextColor={'grey'}
-            onChangeText={onChangeText}
-            onSubmitEditing={onSubmit}
-            keyboardType={mode ? 'default' : 'numeric'}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            style={[
-              {
-                color: theme.onBackground,
-                backgroundColor: theme.background,
-                borderColor: error
-                  ? theme.error
-                  : inputFocused
-                  ? theme.primary
-                  : theme.outline,
-                borderWidth: borderWidth,
-                margin: margin,
-              },
-              styles.textInput,
-            ]}
-          />
-          {!!error && (
-            <Text style={[styles.errorText, { color: errorColor }]}>
-              {error}
+        <KeyboardAwareScrollView>
+          <View>
+            <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
+              {getString('novelScreen.jumpToChapterModal.jumpToChapter')}
             </Text>
-          )}
-          <SwitchItem
-            label={getString('novelScreen.jumpToChapterModal.openChapter')}
-            value={openChapter}
-            theme={theme}
-            onPress={() => setOpenChapter(!openChapter)}
-          />
-          <SwitchItem
-            label={getString('novelScreen.jumpToChapterModal.chapterName')}
-            value={mode}
-            theme={theme}
-            onPress={() => setMode(!mode)}
-          />
-        </View>
+            <RNTextInput
+              ref={inputRef}
+              placeholder={placeholder}
+              placeholderTextColor={'grey'}
+              onChangeText={onChangeText}
+              onSubmitEditing={onSubmit}
+              keyboardType={mode ? 'default' : 'numeric'}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              style={[
+                {
+                  color: theme.onBackground,
+                  backgroundColor: theme.background,
+                  borderColor: error
+                    ? theme.error
+                    : inputFocused
+                    ? theme.primary
+                    : theme.outline,
+                  borderWidth: borderWidth,
+                  margin: margin,
+                },
+                styles.textInput,
+              ]}
+            />
+            {!!error && (
+              <Text style={[styles.errorText, { color: errorColor }]}>
+                {error}
+              </Text>
+            )}
+            <SwitchItem
+              label={getString('novelScreen.jumpToChapterModal.openChapter')}
+              value={openChapter}
+              theme={theme}
+              onPress={() => setOpenChapter(!openChapter)}
+            />
+            <SwitchItem
+              label={getString('novelScreen.jumpToChapterModal.chapterName')}
+              value={mode}
+              theme={theme}
+              onPress={() => setMode(!mode)}
+            />
+          </View>
+        </KeyboardAwareScrollView>
         {result.length ? (
           <View style={[styles.legendlist, { borderColor: theme.outline }]}>
             <LegendList

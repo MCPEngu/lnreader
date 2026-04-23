@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Portal, TextInput } from 'react-native-paper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { Button, Modal } from '@components/index';
 
@@ -45,40 +46,42 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   return (
     <Portal>
       <Modal visible={visible} onDismiss={close}>
-        <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
-          {getString(
-            isEditMode
-              ? 'categories.editCategories'
-              : 'categories.addCategories',
-          )}
-        </Text>
-        <TextInput
-          autoFocus
-          defaultValue={categoryName}
-          placeholder={getString('common.name')}
-          onChangeText={setCategoryName}
-          mode="outlined"
-          underlineColor={theme.outline}
-          theme={{ colors: { ...theme } }}
-        />
-        <View style={styles.btnContainer}>
-          <Button
-            title={getString(isEditMode ? 'common.ok' : 'common.add')}
-            onPress={async () => {
-              if (isCategoryNameDuplicate(categoryName)) {
-                showToast(getString('categories.duplicateError'));
-              } else {
-                if (isEditMode && category) {
-                  await updateCategory(category?.id, categoryName);
-                } else {
-                  await createCategory(categoryName);
-                }
-                finalize();
-              }
-            }}
+        <KeyboardAwareScrollView>
+          <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
+            {getString(
+              isEditMode
+                ? 'categories.editCategories'
+                : 'categories.addCategories',
+            )}
+          </Text>
+          <TextInput
+            autoFocus
+            defaultValue={categoryName}
+            placeholder={getString('common.name')}
+            onChangeText={setCategoryName}
+            mode="outlined"
+            underlineColor={theme.outline}
+            theme={{ colors: { ...theme } }}
           />
-          <Button title={getString('common.cancel')} onPress={close} />
-        </View>
+          <View style={styles.btnContainer}>
+            <Button
+              title={getString(isEditMode ? 'common.ok' : 'common.add')}
+              onPress={async () => {
+                if (isCategoryNameDuplicate(categoryName)) {
+                  showToast(getString('categories.duplicateError'));
+                } else {
+                  if (isEditMode && category) {
+                    await updateCategory(category?.id, categoryName);
+                  } else {
+                    await createCategory(categoryName);
+                  }
+                  finalize();
+                }
+              }}
+            />
+            <Button title={getString('common.cancel')} onPress={close} />
+          </View>
+        </KeyboardAwareScrollView>
       </Modal>
     </Portal>
   );

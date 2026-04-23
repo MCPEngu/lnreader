@@ -71,7 +71,6 @@ export default function usePlugins() {
     const installedPlugins =
       getMMKVObject<PluginItem[]>(INSTALLED_PLUGINS) || [];
     return fetchPlugins().then(fetchedPlugins => {
-
       // Update installed plugins with new version info (immutably)
       const updatedInstalled = installedPlugins.map(installed => {
         const remote = fetchedPlugins.find(p => p.id === installed.id);

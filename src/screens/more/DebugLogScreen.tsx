@@ -1,19 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 
 import { Appbar, SafeAreaView } from '@components';
 import { useTheme } from '@hooks/persisted';
-import DebugLogService, {
-  LogEntry,
-  LogLevel,
-} from '@services/DebugLogService';
+import DebugLogService, { LogEntry, LogLevel } from '@services/DebugLogService';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
 
@@ -61,7 +52,9 @@ const DebugLogScreen = ({ navigation }: any) => {
     const text = filteredEntries
       .map(
         e =>
-          `[${e.timestamp.toLocaleTimeString()}] [${LEVEL_LABELS[e.level]}] ${e.message}`,
+          `[${e.timestamp.toLocaleTimeString()}] [${LEVEL_LABELS[e.level]}] ${
+            e.message
+          }`,
       )
       .join('\n');
     Clipboard.setStringAsync(text);
@@ -75,17 +68,10 @@ const DebugLogScreen = ({ navigation }: any) => {
   const renderItem = useCallback(
     ({ item }: { item: LogEntry }) => (
       <View style={styles.logEntry}>
-        <Text
-          style={[styles.logTimestamp, { color: theme.onSurfaceVariant }]}
-        >
+        <Text style={[styles.logTimestamp, { color: theme.onSurfaceVariant }]}>
           {item.timestamp.toLocaleTimeString()}
         </Text>
-        <Text
-          style={[
-            styles.logLevel,
-            { color: LEVEL_COLORS[item.level] },
-          ]}
-        >
+        <Text style={[styles.logLevel, { color: LEVEL_COLORS[item.level] }]}>
           {LEVEL_LABELS[item.level]}
         </Text>
         <Text
@@ -124,9 +110,7 @@ const DebugLogScreen = ({ navigation }: any) => {
                 styles.filterBtn,
                 {
                   backgroundColor:
-                    filter === btn.value
-                      ? theme.primary
-                      : theme.surfaceVariant,
+                    filter === btn.value ? theme.primary : theme.surfaceVariant,
                   borderColor: theme.outline,
                 },
               ]}

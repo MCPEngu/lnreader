@@ -68,13 +68,16 @@ const AppErrorBoundary: React.FC<AppErrorBoundaryProps> = ({ children }) => {
   );
 };
 
-export const NativeCrashFallback: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const NativeCrashFallback: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const theme = useTheme();
   const [crashLog, setCrashLog] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     try {
-      const externalCachesDir = NativeFile.getConstants().ExternalCachesDirectoryPath;
+      const externalCachesDir =
+        NativeFile.getConstants().ExternalCachesDirectoryPath;
       if (externalCachesDir) {
         const crashLogPath = externalCachesDir + '/crash_log.txt';
         if (NativeFile.exists(crashLogPath)) {
@@ -96,7 +99,8 @@ export const NativeCrashFallback: React.FC<{ children: React.ReactNode }> = ({ c
       showToast('Copied to clipboard');
     }
     try {
-      const externalCachesDir = NativeFile.getConstants().ExternalCachesDirectoryPath;
+      const externalCachesDir =
+        NativeFile.getConstants().ExternalCachesDirectoryPath;
       if (externalCachesDir) {
         const crashLogPath = externalCachesDir + '/crash_log.txt';
         if (NativeFile.exists(crashLogPath)) {
@@ -121,7 +125,8 @@ export const NativeCrashFallback: React.FC<{ children: React.ReactNode }> = ({ c
             Application Crashed Previously
           </Text>
           <Text style={[styles.errorDesc, { color: theme.onSurface }]}>
-            The application ran into a fatal native error during the last session. Please copy the crash log and report it in our Discord.
+            The application ran into a fatal native error during the last
+            session. Please copy the crash log and report it in our Discord.
           </Text>
           <Text
             style={[

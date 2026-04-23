@@ -4,17 +4,37 @@ import { TranslateEngine } from './TranslateEngine';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+function decodeHTMLEntities(str: string) {
+  const entities = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&#x2F;': '/',
+    '&#x60;': '`',
+    '&#x3D;': '=',
+  };
+
+  return str.replace(
+    /&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g,
+    match => entities[match as keyof typeof entities],
+  );
+}
+
 export class GoogleTranslateFreeEngine implements TranslateEngine {
   id = 'google-free';
   name = 'Google Translate (Free)';
 
-  private MAX_CHUNK_LENGTH = 1500;
-  private SEPARATOR = '\n\n~|||~\n\n';
+  private MAX_CHUNK_LENGTH = 10_000;
 
-  private chunkTexts(texts: string[]): { text: string; indices: number[] }[] {
-    const chunks: { text: string; indices: number[] }[] = [];
-    let currentChunkText = '';
+  private chunkTexts(
+    texts: string[],
+  ): { textArray: string[]; indices: number[] }[] {
+    const chunks: { textArray: string[]; indices: number[] }[] = [];
+    let currentChunkTexts: string[] = [];
     let currentIndices: number[] = [];
+    let currentLength = 0;
 
     for (let i = 0; i < texts.length; i++) {
       const text = texts[i];
@@ -22,20 +42,23 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
         continue; // Skip empties during network fetch
       }
 
-      const newChunk =
-        currentChunkText + (currentChunkText ? this.SEPARATOR : '') + text;
-      if (newChunk.length > this.MAX_CHUNK_LENGTH && currentChunkText) {
-        chunks.push({ text: currentChunkText, indices: currentIndices });
-        currentChunkText = text;
+      if (
+        currentLength + text.length > this.MAX_CHUNK_LENGTH &&
+        currentChunkTexts.length > 0
+      ) {
+        chunks.push({ textArray: currentChunkTexts, indices: currentIndices });
+        currentChunkTexts = [text];
         currentIndices = [i];
+        currentLength = text.length;
       } else {
-        currentChunkText = newChunk;
+        currentChunkTexts.push(text);
         currentIndices.push(i);
+        currentLength += text.length;
       }
     }
 
-    if (currentChunkText) {
-      chunks.push({ text: currentChunkText, indices: currentIndices });
+    if (currentChunkTexts.length > 0) {
+      chunks.push({ textArray: currentChunkTexts, indices: currentIndices });
     }
     return chunks;
   }
@@ -57,13 +80,24 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
       currentChunkIdx++
     ) {
       const chunk = chunks[currentChunkIdx];
-      const encodedText = encodeURIComponent(chunk.text);
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodedText}`;
-
       let retryCount = 0;
 
       try {
-        const res = await fetch(url, { signal });
+        const bodyJSON = [[chunk.textArray, source, target], 'te'];
+        const res = await fetch(
+          'https://translate-pa.googleapis.com/v1/translateHtml',
+          {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json+protobuf',
+              'x-client-data': 'CIH/ygE=',
+              'x-goog-api-key': 'AIzaSyATBXajvzQLTDHEQbcpq0Ihe0vWDHmO520',
+            },
+            body: JSON.stringify(bodyJSON),
+            signal,
+          },
+        );
+
         if (res.status === 429) {
           if (retryCount >= MAX_RETRIES) {
             console.warn(
@@ -86,26 +120,17 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
 
         const data = await res.json();
 
-        let translatedChunk = '';
         if (Array.isArray(data) && Array.isArray(data[0])) {
-          data[0].forEach((item: any[]) => {
-            if (item[0]) {
-              translatedChunk += item[0];
-            }
-          });
-        }
-
-        // Sometimes Google might add spaces around the separator
-        const translatedSegments = translatedChunk.split(/\s*~\|\|\|~\s*/);
-
-        // If split perfectly aligns
-        if (translatedSegments.length === chunk.indices.length) {
-          chunk.indices.forEach((originalIndex, innerIdx) => {
-            results[originalIndex] = translatedSegments[innerIdx].trim();
-          });
-        } else {
-          // Fallback parsing or leave original if heavily mutated
-          console.warn('Google chunk mismatch length');
+          // If split perfectly aligns
+          if (data[0].length === chunk.indices.length) {
+            chunk.indices.forEach((originalIndex, innerIdx) => {
+              results[originalIndex] = decodeHTMLEntities(
+                data[0][innerIdx] || '',
+              ).trim();
+            });
+          } else {
+            console.warn('Google chunk mismatch length');
+          }
         }
       } catch (e: any) {
         if (e?.name === 'AbortError') throw e;

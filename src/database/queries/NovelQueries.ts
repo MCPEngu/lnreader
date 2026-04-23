@@ -375,7 +375,11 @@ export const updateNovelCategories = async (
 
   await dbManager.write(async tx => {
     // Ensure novels are in library when added to a category
-    await tx.update(novelSchema).set({ inLibrary: true }).where(inArray(novelSchema.id, novelIds)).run();
+    await tx
+      .update(novelSchema)
+      .set({ inLibrary: true })
+      .where(inArray(novelSchema.id, novelIds))
+      .run();
 
     // Delete existing categories (keeping local category if present)
     await tx
@@ -396,7 +400,11 @@ export const updateNovelCategories = async (
         }
       }
       if (inserts.length > 0) {
-        await tx.insert(novelCategorySchema).values(inserts).onConflictDoNothing().run();
+        await tx
+          .insert(novelCategorySchema)
+          .values(inserts)
+          .onConflictDoNothing()
+          .run();
       }
     } else {
       // If no category is selected, set to the default category (sort = 1)
@@ -414,7 +422,9 @@ export const updateNovelCategories = async (
           .where(inArray(novelCategorySchema.novelId, novelIds))
           .all();
 
-        const categorizedNovelIds = new Set(existingCategoryRecords.map(r => r.novelId));
+        const categorizedNovelIds = new Set(
+          existingCategoryRecords.map(r => r.novelId),
+        );
 
         const toInsert = novelIds
           .filter(id => !categorizedNovelIds.has(id))

@@ -8,6 +8,8 @@ import { dbManager } from '@database/db';
 import { novelSchema, chapterSchema } from '@database/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import NativeFile from '@specs/NativeFile';
+import { MMKVStorage } from '@utils/mmkv/mmkv';
+import { NOVEL_UPDATE_RANDOM_KEY } from '@hooks/persisted/useUpdates';
 
 /**
  * Update novel metadata in the database including cover image.
@@ -61,7 +63,10 @@ const updateNovelMetadata = async (
 /**
  * Update only the necessary information for a novel.
  */
-const updateNovelNecessaryInfo = async (novelId: number, novel: SourceNovel) => {
+const updateNovelNecessaryInfo = async (
+  novelId: number,
+  novel: SourceNovel,
+) => {
   const { totalPages, status } = novel;
   const data: Record<string, any> = {};
   if (totalPages) {
@@ -74,10 +79,7 @@ const updateNovelNecessaryInfo = async (novelId: number, novel: SourceNovel) => 
     return;
   }
   await dbManager.write(async tx => {
-    tx.update(novelSchema)
-      .set(data)
-      .where(eq(novelSchema.id, novelId))
-      .run();
+    tx.update(novelSchema).set(data).where(eq(novelSchema.id, novelId)).run();
   });
 };
 
@@ -108,7 +110,20 @@ const updateNovelChapters = async (
 
     const existingMap = new Map(existingChapters.map(c => [c.path, c]));
 
-    const toInsert = [];
+    // If no existing chapters, this is the first population — don't set dateFetch
+    const isFirstPopulation = existingChapters.length === 0;
+
+    const toInsert: Array<{
+      path: string;
+      name: string;
+      releaseTime: string | null;
+      novelId: number;
+      updatedTime: ReturnType<typeof sql>;
+      chapterNumber: number | null;
+      page: string;
+      position: number;
+      dateFetch: string | null;
+    }> = [];
     const toUpdate = [];
 
     const updatedTime = sql`datetime('now','localtime')`;
@@ -137,6 +152,7 @@ const updateNovelChapters = async (
           chapterNumber: chapterNumber || null,
           page: chapterPage,
           position: position,
+          dateFetch: null, // Will be assigned below with offset
         });
       } else {
         // Update existing chapter if metadata changed
@@ -158,11 +174,24 @@ const updateNovelChapters = async (
       }
     }
 
+    // Assign dateFetch with offset for correct ordering (like Mihon: nowMillis + itemCount--)
+    // Only for truly new chapters, skip on first population
+    if (!isFirstPopulation && toInsert.length > 0) {
+      const nowMs = Date.now();
+      let itemCount = toInsert.length;
+      for (const item of toInsert) {
+        item.dateFetch = new Date(nowMs + itemCount--).toISOString();
+      }
+    }
+
     if (toInsert.length > 0) {
       const CHUNK_SIZE = 500;
       for (let i = 0; i < toInsert.length; i += CHUNK_SIZE) {
         const chunk = toInsert.slice(i, i + CHUNK_SIZE);
-        const newChapters = await tx.insert(chapterSchema).values(chunk).returning();
+        const newChapters = await tx
+          .insert(chapterSchema)
+          .values(chunk)
+          .returning();
 
         if (downloadNewChapters) {
           for (const newChapter of newChapters) {
@@ -177,6 +206,11 @@ const updateNovelChapters = async (
           }
         }
       }
+      // Force UI refresh
+      MMKVStorage.set(
+        NOVEL_UPDATE_RANDOM_KEY,
+        Math.random().toString(36).substring(2, 15),
+      );
     }
 
     if (toUpdate.length > 0) {
@@ -189,7 +223,12 @@ const updateNovelChapters = async (
             page: chapterData.page,
             position: chapterData.position,
           })
-          .where(and(eq(chapterSchema.id, chapterData.id), eq(chapterSchema.novelId, novelId)))
+          .where(
+            and(
+              eq(chapterSchema.id, chapterData.id),
+              eq(chapterSchema.novelId, novelId),
+            ),
+          )
           .run();
       }
     }

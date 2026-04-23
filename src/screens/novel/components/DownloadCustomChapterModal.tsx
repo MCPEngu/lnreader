@@ -6,6 +6,7 @@ import { ThemeColors } from '@theme/types';
 import { ChapterInfo, NovelInfo } from '@database/types';
 import { getString } from '@strings/translations';
 import { Modal } from '@components';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface DownloadCustomChapterModalProps {
   theme: ThemeColors;
@@ -50,53 +51,55 @@ const DownloadCustomChapterModal = ({
   return (
     <Portal>
       <Modal visible={modalVisible} onDismiss={onDismiss}>
-        <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
-          {getString('novelScreen.download.customAmount')}
-        </Text>
-        <View style={styles.row}>
-          <IconButton
-            icon="chevron-double-left"
-            animated
-            size={24}
-            iconColor={theme.primary}
-            onPress={() => text > 9 && setText(prevState => prevState - 10)}
-          />
-          <IconButton
-            icon="chevron-left"
-            animated
-            size={24}
-            iconColor={theme.primary}
-            onPress={() => text > 0 && setText(prevState => prevState - 1)}
-          />
-          <TextInput
-            value={text.toString()}
-            style={[{ color: theme.onSurface }, styles.marginHorizontal]}
-            keyboardType="numeric"
-            onChangeText={onChangeText}
-            onSubmitEditing={onSubmit}
-          />
-          <IconButton
-            icon="chevron-right"
-            animated
-            size={24}
-            iconColor={theme.primary}
-            onPress={() => setText(prevState => prevState + 1)}
-          />
-          <IconButton
-            icon="chevron-double-right"
-            animated
-            size={24}
-            iconColor={theme.primary}
-            onPress={() => setText(prevState => prevState + 10)}
-          />
-        </View>
-        <Button
-          onPress={onSubmit}
-          textColor={theme.onPrimary}
-          buttonColor={theme.primary}
-        >
-          {getString('libraryScreen.bottomSheet.display.download')}
-        </Button>
+        <KeyboardAwareScrollView>
+          <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
+            {getString('novelScreen.download.customAmount')}
+          </Text>
+          <View style={styles.row}>
+            <IconButton
+              icon="chevron-double-left"
+              animated
+              size={24}
+              iconColor={theme.primary}
+              onPress={() => text > 9 && setText(prevState => prevState - 10)}
+            />
+            <IconButton
+              icon="chevron-left"
+              animated
+              size={24}
+              iconColor={theme.primary}
+              onPress={() => text > 0 && setText(prevState => prevState - 1)}
+            />
+            <TextInput
+              value={text.toString()}
+              style={[{ color: theme.onSurface }, styles.marginHorizontal]}
+              keyboardType="numeric"
+              onChangeText={onChangeText}
+              onSubmitEditing={onSubmit}
+            />
+            <IconButton
+              icon="chevron-right"
+              animated
+              size={24}
+              iconColor={theme.primary}
+              onPress={() => setText(prevState => prevState + 1)}
+            />
+            <IconButton
+              icon="chevron-double-right"
+              animated
+              size={24}
+              iconColor={theme.primary}
+              onPress={() => setText(prevState => prevState + 10)}
+            />
+          </View>
+          <Button
+            onPress={onSubmit}
+            textColor={theme.onPrimary}
+            buttonColor={theme.primary}
+          >
+            {getString('libraryScreen.bottomSheet.display.download')}
+          </Button>
+        </KeyboardAwareScrollView>
       </Modal>
     </Portal>
   );

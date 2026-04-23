@@ -62,7 +62,7 @@ class DebugLogServiceClass {
       this.originalConsole.info(...args);
       this.addEntry('info', this.formatArgs(args));
     };
-  }
+  };
 
   private formatArgs(args: unknown[]): string {
     return args
@@ -71,7 +71,11 @@ class DebugLogServiceClass {
           return arg;
         }
         try {
-          return util.inspect(arg, { showHidden: false, depth: null, customInspect: true });
+          return util.inspect(arg, {
+            showHidden: false,
+            depth: 3,
+            customInspect: true,
+          });
         } catch {
           return String(arg);
         }
