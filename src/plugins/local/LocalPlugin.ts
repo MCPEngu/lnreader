@@ -98,56 +98,12 @@ class LocalPlugin implements Plugin {
     }));
   }
 
-  async parseNovel(novelPath: string): Promise<SourceNovel> {
-    const novel = await dbManager
-      .select()
-      .from(novelSchema)
-      .where(
-        and(
-          eq(novelSchema.path, novelPath),
-          eq(novelSchema.pluginId, 'local'),
-        ),
-      )
-      .get();
-
-    if (!novel) {
-      throw new Error(`Local novel not found: ${novelPath}`);
-    }
-
-    const chapters = await dbManager
-      .select()
-      .from(chapterSchema)
-      .where(eq(chapterSchema.novelId, novel.id))
-      .all();
-
-    const chapterItems: ChapterItem[] = chapters.map(ch => ({
-      name: ch.name,
-      path: ch.path,
-      chapterNumber: ch.chapterNumber ?? undefined,
-      releaseTime: ch.releaseTime ?? undefined,
-      page: ch.page ?? '1',
-    }));
-
-    return {
-      id: undefined,
-      name: novel.name,
-      path: novel.path,
-      cover: rewriteFileUri(novel.cover),
-      summary: novel.summary ?? undefined,
-      author: novel.author ?? undefined,
-      artist: novel.artist ?? undefined,
-      status: (novel.status as NovelStatus) ?? NovelStatus.Unknown,
-      genres: novel.genres ?? undefined,
-      chapters: chapterItems,
-      totalPages: novel.totalPages ?? undefined,
-    };
+  async parseNovel(): Promise<SourceNovel> {
+    throw new Error("Do not open it in this plugin. Use Category instead.");
   }
 
-  async parsePage(novelPath: string, _page: string): Promise<SourcePage> {
-    const novel = await this.parseNovel(novelPath);
-    return {
-      chapters: novel.chapters || [],
-    };
+  async parsePage(): Promise<SourcePage> {
+    throw new Error("Do not open it in this plugin. Use Category instead.");
   }
 
   async parseChapter(chapterPath: string): Promise<string> {

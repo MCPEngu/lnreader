@@ -122,51 +122,90 @@ export const switchNovelToLibraryQuery = async (
   const novel = getNovelByPath(novelPath, pluginId);
   if (novel) {
     const newInLibrary = !novel.inLibrary;
-    await dbManager.write(async tx => {
-      await tx
-        .update(novelSchema)
-        .set({ inLibrary: newInLibrary })
-        .where(eq(novelSchema.id, novel.id))
-        .run();
+    const isLocalRemoval =
+      !newInLibrary && novel.pluginId === 'local';
 
-      if (!newInLibrary) {
-        // Remove from library: delete categories
+    await dbManager.write(async tx => {
+      if (isLocalRemoval) {
+        // Local novels can't be re-fetched, so fully delete them
         await tx
           .delete(novelCategorySchema)
           .where(eq(novelCategorySchema.novelId, novel.id))
           .run();
-        showToast(getString('browseScreen.removeFromLibrary'));
+        await tx
+          .delete(chapterSchema)
+          .where(eq(chapterSchema.novelId, novel.id))
+          .run();
+        await tx
+          .delete(novelSchema)
+          .where(eq(novelSchema.id, novel.id))
+          .run();
       } else {
-        // Add to library: add to default category
-        const defaultCategory = await tx
-          .select({ id: categorySchema.id })
-          .from(categorySchema)
-          .where(eq(categorySchema.id, 1))
-          .get();
+        await tx
+          .update(novelSchema)
+          .set({ inLibrary: newInLibrary })
+          .where(eq(novelSchema.id, novel.id))
+          .run();
 
-        if (defaultCategory) {
+        if (!newInLibrary) {
+          // Remove from library: delete categories
           await tx
-            .insert(novelCategorySchema)
-            .values({
-              novelId: novel.id,
-              categoryId: defaultCategory.id,
-            })
+            .delete(novelCategorySchema)
+            .where(eq(novelCategorySchema.novelId, novel.id))
             .run();
-        }
+        } else {
+          // Add to library: add to default category
+          const defaultCategory = await tx
+            .select({ id: categorySchema.id })
+            .from(categorySchema)
+            .where(eq(categorySchema.id, 1))
+            .get();
 
-        if (novel.pluginId === 'local') {
-          await tx
-            .insert(novelCategorySchema)
-            .values({
-              novelId: novel.id,
-              categoryId: 2,
-            })
-            .onConflictDoNothing()
-            .run();
+          if (defaultCategory) {
+            await tx
+              .insert(novelCategorySchema)
+              .values({
+                novelId: novel.id,
+                categoryId: defaultCategory.id,
+              })
+              .run();
+          }
+
+          if (novel.pluginId === 'local') {
+            await tx
+              .insert(novelCategorySchema)
+              .values({
+                novelId: novel.id,
+                categoryId: 2,
+              })
+              .onConflictDoNothing()
+              .run();
+          }
         }
-        showToast(getString('browseScreen.addedToLibrary'));
       }
     });
+
+    if (isLocalRemoval) {
+      // Delete files OUTSIDE the transaction so a file error
+      // doesn't rollback the DB cleanup
+      try {
+        const novelDir = `${NOVEL_STORAGE}/local/${novel.id}`;
+        if (NativeFile.exists(novelDir)) {
+          NativeFile.unlink(novelDir);
+        }
+      } catch (e) {
+        console.error('[LocalNovel] Failed to delete files:', e);
+      }
+      showToast(getString('browseScreen.removeFromLibrary'));
+      // Return undefined to signal the novel was fully deleted
+      return undefined;
+    }
+
+    showToast(
+      newInLibrary
+        ? getString('browseScreen.addedToLibrary')
+        : getString('browseScreen.removeFromLibrary'),
+    );
     return { ...novel, inLibrary: newInLibrary };
   } else {
     const sourceNovel = await fetchNovel(pluginId, novelPath);
