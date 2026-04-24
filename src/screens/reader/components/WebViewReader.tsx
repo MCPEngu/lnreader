@@ -13,6 +13,7 @@ import { useTheme } from '@hooks/persisted';
 import { getString } from '@strings/translations';
 
 import { getPlugin } from '@plugins/pluginManager';
+import { getLocalServerUrl } from '@plugins/local/localServerManager';
 import { MMKVStorage, getMMKVObject } from '@utils/mmkv/mmkv';
 import {
   CHAPTER_GENERAL_SETTINGS,
@@ -53,7 +54,6 @@ const onLogMessage = (payload: { nativeEvent: { data: string } }) => {
     const dataPayload = JSON.parse(payload.nativeEvent.data);
     if (dataPayload) {
       if (dataPayload.type === 'console') {
-        /* eslint-disable no-console */
         console[dataPayload.method as 'log'](`[WebView]`, ...dataPayload.args);
       } else if (dataPayload.type === 'error') {
         console.error(`[WebView Error]`, dataPayload.msg);
@@ -542,7 +542,11 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         }
       }}
       source={{
-        baseUrl: !chapter.isDownloaded ? plugin?.site : undefined,
+        baseUrl: novel.isLocal
+          ? `${getLocalServerUrl()}/local/${novel.id}/`
+          : !chapter.isDownloaded
+          ? plugin?.site
+          : undefined,
         headers: plugin?.imageRequestInit?.headers,
         method: plugin?.imageRequestInit?.method,
         body: plugin?.imageRequestInit?.body,
@@ -551,7 +555,11 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           <html dir="${readerDir}">
             <head>
               <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-              <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+              ${
+                !novel.isLocal
+                  ? '<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">'
+                  : ''
+              }
               <link rel="stylesheet" href="${assetsUriPrefix}/css/index.css">
               <link rel="stylesheet" href="${assetsUriPrefix}/css/pageReader.css">
               <link rel="stylesheet" href="${assetsUriPrefix}/css/toolWrapper.css">

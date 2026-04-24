@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { useLibraryContext } from '@components/Context/LibraryContext';
 import { ChapterFilterKey, ChapterOrderKey } from '@database/constants';
 import {
@@ -199,10 +198,16 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
   const followNovel = useCallback(() => {
     switchNovelToLibrary(novelPath, pluginId).then(() => {
       if (novel) {
-        setNovel({
-          ...novel,
-          inLibrary: !novel?.inLibrary,
-        });
+        if (novel.isLocal && novel.inLibrary) {
+          // Local novel was fully deleted from DB — clear state
+          // to prevent re-fetch cascade (getChapters → parseNovel → error)
+          setNovel(undefined);
+        } else {
+          setNovel({
+            ...novel,
+            inLibrary: !novel?.inLibrary,
+          });
+        }
       }
     });
   }, [novel, novelPath, pluginId, switchNovelToLibrary]);

@@ -16,7 +16,7 @@ interface EpubNovel {
 }
 
 export interface Spec extends TurboModule {
-  parseNovelAndChapters: (epubDirPath: string) => EpubNovel;
+  parseNovelAndChapters: (epubDirPath: string) => Promise<EpubNovel>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NativeEpub');

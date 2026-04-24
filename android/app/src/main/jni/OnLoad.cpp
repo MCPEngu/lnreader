@@ -33,7 +33,6 @@
 #include <fbjni/fbjni.h>
 #include <react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h>
 #include <FBReactNativeSpec.h>
-#include <NativeEpub.hpp>
 
 #ifdef REACT_NATIVE_APP_CODEGEN_HEADER
 #include REACT_NATIVE_APP_CODEGEN_HEADER
@@ -74,11 +73,6 @@ namespace facebook::react
         // if (name == NativeCxxModuleExample::kModuleName) {
         //   return std::make_shared<NativeCxxModuleExample>(jsInvoker);
         // }
-
-        if (name == NativeEpub::kModuleName)
-        {
-            return std::make_shared<NativeEpub>(jsInvoker);
-        }
 
         // And we fallback to the CXX module providers autolinked
         return autolinking_cxxModuleProvider(name, jsInvoker);

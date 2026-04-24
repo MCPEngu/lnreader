@@ -49,6 +49,8 @@ const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
             description={getString('backupScreen.googeDriveDesc')}
             theme={theme}
             onPress={openGoogleDriveModal}
+            // TODO: add google drive support
+            disabled
           />
           <List.SubHeader theme={theme}>
             {getString('backupScreen.localBackup')}
