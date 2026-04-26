@@ -2,6 +2,7 @@
 import { getUserAgent } from '@hooks/persisted/useUserAgent';
 import NativeFile from '@specs/NativeFile';
 import { parse as parseProto } from 'protobufjs';
+import CookieManager from '@preeternal/react-native-cookie-manager';
 
 type FetchInit = {
   headers?: Record<string, string> | Headers;
@@ -45,6 +46,21 @@ export const fetchApi = async (
   init?: FetchInit,
 ): Promise<Response> => {
   init = makeInit(init);
+  const baseURL = new URL(url).origin;
+  if (init.headers instanceof Headers && init.headers.has('Cookie')) {
+    const cookieValue = init.headers.get('Cookie')!;
+    // console.info(`CookieManager#set: ${baseURL} => ${cookieValue}`);
+    await CookieManager.setFromResponse(baseURL, cookieValue);
+  } else {
+    const cookieKey = Object.keys(init.headers as Record<string, string>).find(k => k.toLowerCase() === 'cookie');
+    if (cookieKey && (init.headers as Record<string, string>)[cookieKey]) {
+      const cookieValue = (init.headers as Record<string, string>)[cookieKey];
+      // console.info(`CookieManager#set: ${baseURL} => ${cookieValue}`);
+      await CookieManager.setFromResponse(baseURL, cookieValue);
+    }
+  }
+  // Test cookie
+  // console.log(await CookieManager.get(baseURL));
   return await fetch(url, init);
 };
 
@@ -177,9 +193,9 @@ export const fetchProto = async function (
           );
           const length = Number(
             BigInt(payload[1] << 24) |
-              BigInt(payload[2] << 16) |
-              BigInt(payload[3] << 8) |
-              BigInt(payload[4]),
+            BigInt(payload[2] << 16) |
+            BigInt(payload[3] << 8) |
+            BigInt(payload[4]),
           );
           const ResponseMessage = protoRoot.lookupType(protoInit.responseType);
           resolve(ResponseMessage.decode(payload.slice(5, 5 + length)));
