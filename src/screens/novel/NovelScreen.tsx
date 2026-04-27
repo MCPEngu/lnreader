@@ -20,6 +20,7 @@ import { ChapterInfo } from '@database/types';
 import { getString } from '@strings/translations';
 import { isNumber, noop } from 'lodash-es';
 import NovelAppbar from './components/NovelAppbar';
+import ForceResetModal from './components/ForceResetModal';
 import { resolveUrl } from '@services/plugin/fetch';
 import {
   getAllUndownloadedAndUnreadChapters,
@@ -62,6 +63,7 @@ const Novel = ({ route, navigation }: NovelScreenProps) => {
   const deleteDownloadsSnackbar = useBoolean();
 
   const headerOpacity = useSharedValue(0);
+  const [forceResetModal, showForceResetModal] = useState(false);
 
   const downloadChs = useCallback(
     async (amount: number | 'all' | 'unread') => {
@@ -286,6 +288,7 @@ const Novel = ({ route, navigation }: NovelScreenProps) => {
               setCustomNovelCover={setCustomNovelCover}
               downloadCustomChapterModal={openDlChapterModal}
               showJumpToChapterModal={showJumpToChapterModal}
+              showForceResetModal={showForceResetModal}
               shareNovel={shareNovel}
               theme={theme}
               isLocal={novel?.isLocal ?? route.params?.isLocal ?? false}
@@ -370,6 +373,12 @@ const Novel = ({ route, navigation }: NovelScreenProps) => {
                 chapters={chapters}
                 theme={theme}
                 downloadChapters={downloadChapters}
+              />
+              <ForceResetModal
+                visible={forceResetModal}
+                onDismiss={() => showForceResetModal(false)}
+                novel={novel}
+                theme={theme}
               />
             </>
           ) : null}

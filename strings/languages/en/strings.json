@@ -224,6 +224,7 @@
     "done": "Done",
     "downloads": "Downloads",
     "edit": "Edit",
+    "error": "Error",
     "example": "Example",
     "filter": "Filter",
     "globally": "globally",
@@ -453,6 +454,34 @@
       "jumpToChapter": "Jump to Chapter",
       "openChapter": "Open Chapter"
     },
+    "forceResetModal": {
+      "title": "Force Reset",
+      "description": "Perform a hard-sync to fix duplicate chapters or refresh all novel data.",
+      "reloadMetadata": "Reload novel info",
+      "reloadChapters": "Reload chapter list",
+      "reloadAllPages": "Reload all %{totalPages} pages",
+      "reloadAllPagesWarning": "Warning: Loading all pages at once may take a long time and risks being blocked by Cloudflare due to too many requests.",
+      "deleteDownloads": "Delete downloaded chapters",
+      "start": "Start",
+      "logStart": "Starting Force Reset...",
+      "logFetchNovel": "Fetching data from source...",
+      "logFetchError": "Failed to fetch data from source: %{error}",
+      "logReloadMetadata": "Updating novel info (Metadata)...",
+      "logReloadMetadataSuccess": "Novel info updated successfully.",
+      "logReloadChapters": "Starting chapter sync...",
+      "logBackupState": "Backing up user state (read, bookmark...)...",
+      "logBackupSuccess": "Backed up %{count} old chapters.",
+      "logDeleteDownloads": "Deleting downloaded chapter files...",
+      "logDeleteDownloadsSuccess": "Downloads deleted.",
+      "logCleanDB": "Cleaning up chapter data in Database...",
+      "logFetchAllPages": "Fetching all %{totalPages} chapter pages...",
+      "logFetchPage": "Fetching page %{page}/%{totalPages}...",
+      "logFetchPageError": "Error fetching page %{page}: %{error}",
+      "logSkipPages": "Only loading page 1 (Skipping remaining %{remaining} pages to load later).",
+      "logFetchedTotal": "Fetched a total of %{count} chapters from source.",
+      "logRestoreState": "Restoring state and saving to Database...",
+      "logSuccess": "Force Reset completed successfully!"
+    },
     "migrate": "Migrate",
     "noSummary": "No summary",
     "noCoverFound": "No cover found",
@@ -509,7 +538,8 @@
         "modelName": "Model Name",
         "loadModels": "Load Models",
         "systemPrompt": "System Prompt",
-        "preTranslateNextChapter": "Pre-translate next chapter"
+        "preTranslateNextChapter": "Pre-translate next chapter",
+        "downloadTranslated": "Download translated version instead of raw"
       }
     },
     "drawer": {
@@ -521,7 +551,8 @@
     "finished": "Finished",
     "nextChapter": "Next: %{name}",
     "noNextChapter": "There's no next chapter",
-    "noPreviousChapter": "There's no previous chapter"
+    "noPreviousChapter": "There's no previous chapter",
+    "usingOfflineTranslation": "Using offline translated version"
   },
   "readerSettings": {
     "autoScrollInterval": "Scroll interval (seconds)",

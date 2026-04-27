@@ -224,6 +224,7 @@
     "done": "Xong",
     "downloads": "Tải xuống",
     "edit": "Sửa",
+    "error": "Lỗi",
     "example": "Ví dụ",
     "filter": "Bộ lọc",
     "globally": "toàn cầu",
@@ -453,6 +454,34 @@
       "jumpToChapter": "Đi tới Chương",
       "openChapter": "Đọc luôn"
     },
+    "forceResetModal": {
+      "title": "Đồng bộ cứng",
+      "description": "Thực hiện đồng bộ cứng để sửa lỗi trùng lặp chương hoặc làm mới toàn bộ dữ liệu truyện.",
+      "reloadMetadata": "Tải lại thông tin truyện",
+      "reloadChapters": "Tải lại danh sách chương",
+      "reloadAllPages": "Tải toàn bộ %{totalPages} trang",
+      "reloadAllPagesWarning": "Cảnh báo: Tải tất cả các trang cùng lúc có thể mất nhiều thời gian và có nguy cơ bị Cloudflare chặn do gửi quá nhiều request.",
+      "deleteDownloads": "Xóa các chương đã tải xuống",
+      "start": "Bắt đầu",
+      "logStart": "Bắt đầu đồng bộ cứng (Force Reset)...",
+      "logFetchNovel": "Đang tải dữ liệu từ nguồn...",
+      "logFetchError": "Không thể tải dữ liệu từ nguồn: %{error}",
+      "logReloadMetadata": "Đang cập nhật thông tin truyện (Metadata)...",
+      "logReloadMetadataSuccess": "Cập nhật thông tin truyện thành công.",
+      "logReloadChapters": "Bắt đầu đồng bộ danh sách chương...",
+      "logBackupState": "Đang sao lưu trạng thái người dùng (đã đọc, bookmark...)...",
+      "logBackupSuccess": "Đã sao lưu %{count} chương cũ.",
+      "logDeleteDownloads": "Đang xóa các tệp chương đã tải xuống...",
+      "logDeleteDownloadsSuccess": "Đã xóa tệp tải xuống.",
+      "logCleanDB": "Đang dọn dẹp dữ liệu chương trong Database...",
+      "logFetchAllPages": "Đang tải toàn bộ %{totalPages} trang chương...",
+      "logFetchPage": "Đang tải trang %{page}/%{totalPages}...",
+      "logFetchPageError": "Lỗi khi tải trang %{page}: %{error}",
+      "logSkipPages": "Chỉ tải trang 1 (Bỏ qua %{remaining} trang còn lại để tải sau).",
+      "logFetchedTotal": "Đã tải tổng cộng %{count} chương từ nguồn.",
+      "logRestoreState": "Đang phục hồi trạng thái và lưu vào Database...",
+      "logSuccess": "Khôi phục danh sách chương thành công!"
+    },
     "migrate": "Đồng bộ",
     "noSummary": "Không có tóm tắt",
     "noCoverFound": "Không tìm thấy ảnh bìa",
@@ -505,7 +534,8 @@
         "systemPrompt": "Prompt hệ thống",
         "targetLanguage": "Ngôn ngữ đích",
         "translationSettings": "Cài đặt dịch",
-        "preTranslateNextChapter": "Dịch trước chương tiếp theo"
+        "preTranslateNextChapter": "Dịch trước chương tiếp theo",
+        "downloadTranslated": "Tải xuống bản dịch thay thế cho bản gốc"
       },
       "useChapterDrawerSwipeNavigation": "Vuốt để mở ngăn chương",
       "verticalSeekbar": "Thanh tua dọc",
@@ -521,7 +551,8 @@
     "finished": "Đã xong",
     "nextChapter": "Tiếp: %{name}",
     "noNextChapter": "Không có chương kế tiếp",
-    "noPreviousChapter": "Không có chương kế tiếp"
+    "noPreviousChapter": "Không có chương trước",
+    "usingOfflineTranslation": "Đang sử dụng bản dịch ngoại tuyến"
   },
   "readerSettings": {
     "autoScrollInterval": "Khoảng thời gian cuộn (giây)",

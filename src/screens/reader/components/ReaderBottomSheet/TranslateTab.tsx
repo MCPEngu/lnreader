@@ -11,10 +11,9 @@ import {
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
 import { useTheme, useTranslateSettings } from '@hooks/persisted';
-import {
-  type LLMProviderSupported,
-  type TranslateSettings,
-  initialTranslateSettings,
+import type {
+  LLMProviderSupported,
+  TranslateSettings,
 } from '@hooks/persisted/useSettings';
 import { List, Button } from '@components/index';
 import { Portal, Modal, TextInput, Menu, Switch } from 'react-native-paper';
@@ -137,19 +136,11 @@ const TranslateTab: React.FC = () => {
     llmEnableReasoning,
     llmReasoningEffort,
     autoTranslateNextChapter,
+    downloadTranslated,
     setTranslateSettings: _setTranslateSettings,
   } = useTranslateSettings();
 
   const { revertTranslation, isTranslated } = useChapterContext();
-
-  React.useEffect(() => {
-    if (!llmSystemPrompt || !llmSystemPrompt.trim()) {
-      _setTranslateSettings({
-        llmSystemPrompt: initialTranslateSettings.llmSystemPrompt,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Wrap setTranslateSettings: when any translation-affecting setting changes,
   // revert to original text so the user doesn't end up with double-translated text.
@@ -276,6 +267,21 @@ const TranslateTab: React.FC = () => {
               value={autoTranslateNextChapter}
               onValueChange={val =>
                 setTranslateSettings({ autoTranslateNextChapter: val })
+              }
+              color={theme.primary}
+            />
+          </View>
+
+          <View style={[styles.settingItem]}>
+            <Text style={[styles.label, { color: theme.onSurface }]}>
+              {getString(
+                'readerScreen.bottomSheet.translateTab.downloadTranslated',
+              )}
+            </Text>
+            <Switch
+              value={downloadTranslated}
+              onValueChange={val =>
+                setTranslateSettings({ downloadTranslated: val })
               }
               color={theme.primary}
             />

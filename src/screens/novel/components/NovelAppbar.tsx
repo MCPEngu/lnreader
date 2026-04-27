@@ -82,6 +82,7 @@ const NovelAppbar = ({
   goBack,
   shareNovel,
   showJumpToChapterModal,
+  showForceResetModal,
   headerOpacity,
 }: {
   novel: NovelInfo | undefined;
@@ -95,6 +96,7 @@ const NovelAppbar = ({
   goBack: () => void;
   shareNovel: () => void;
   showJumpToChapterModal: (arg: boolean) => void;
+  showForceResetModal: (arg: boolean) => void;
   headerOpacity: SharedValue<number>;
 }) => {
   const headerOpacityStyle = useAnimatedStyle(() => {
@@ -176,8 +178,12 @@ const NovelAppbar = ({
         label: getString('novelScreen.edit.cover'),
         onPress: () => setCustomNovelCover(),
       },
+      {
+        label: getString('novelScreen.forceResetModal.title'),
+        onPress: () => showForceResetModal(true),
+      },
     ],
-    [showEditInfoModal, setCustomNovelCover],
+    [showEditInfoModal, setCustomNovelCover, showForceResetModal],
   );
 
   const openDlMenu = useCallback(() => showDownloadMenu(true), []);

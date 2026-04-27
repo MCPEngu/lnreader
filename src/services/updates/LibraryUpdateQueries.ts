@@ -6,7 +6,7 @@ import { downloadFile } from '@plugins/helpers/fetch';
 import ServiceManager from '@services/ServiceManager';
 import { dbManager } from '@database/db';
 import { novelSchema, chapterSchema } from '@database/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import NativeFile from '@specs/NativeFile';
 import { MMKVStorage } from '@utils/mmkv/mmkv';
 import { NOVEL_UPDATE_RANDOM_KEY } from '@hooks/persisted/useUpdates';
@@ -89,18 +89,28 @@ const updateNovelNecessaryInfo = async (
 };
 
 /**
- * Update or insert chapters for a novel.
- * Distinguishes between new chapters (triggers download) and existing chapters (updates metadata).
+ * Update, insert, and delete chapters for a novel.
+ *
+ * Scoping rules:
+ * - When `page` is provided (Page plugin loop): query only chapters for that page
+ * - When `page` is undefined (Base plugin): query ALL chapters for the novel
+ *
+ * Delete safety:
+ * - Only deletes chapters that are unread, not bookmarked, and not downloaded
+ * - Cross-page protection: when page=undefined, only deletes within source page groups
+ * - Skipped on first population and when skipUpdateFlag is set
  */
 const updateNovelChapters = async (
+  pluginId: string,
   novelName: string,
   novelId: number,
   chapters: ChapterItem[],
   downloadNewChapters?: boolean,
   page?: string,
+  skipUpdateFlag?: boolean,
 ) => {
   await dbManager.write(async tx => {
-    // Check if chapter already exists
+    // Query existing chapters — scoped by page when page param is provided
     const existingChapters = await tx
       .select({
         id: chapterSchema.id,
@@ -109,14 +119,24 @@ const updateNovelChapters = async (
         releaseTime: chapterSchema.releaseTime,
         page: chapterSchema.page,
         position: chapterSchema.position,
+        unread: chapterSchema.unread,
+        bookmark: chapterSchema.bookmark,
+        isDownloaded: chapterSchema.isDownloaded,
       })
       .from(chapterSchema)
-      .where(eq(chapterSchema.novelId, novelId))
+      .where(
+        page
+          ? and(
+              eq(chapterSchema.novelId, novelId),
+              eq(chapterSchema.page, page),
+            )
+          : eq(chapterSchema.novelId, novelId),
+      )
       .all();
 
     const existingMap = new Map(existingChapters.map(c => [c.path, c]));
 
-    // If no existing chapters, this is the first population — don't set dateFetch
+    // If no existing chapters in scope, this is the first population — don't set dateFetch
     const isFirstPopulation = existingChapters.length === 0;
 
     const novelInfo = await tx
@@ -189,9 +209,78 @@ const updateNovelChapters = async (
       }
     }
 
+    console.log(
+      `[updateNovelChapters] novelId=${novelId} page=${page ?? 'ALL'}` +
+        ` existing=${existingChapters.length} insert=${toInsert.length}` +
+        ` update=${toUpdate.length} isFirstPop=${isFirstPopulation}` +
+        ` inLibrary=${inLibrary} skip=${!!skipUpdateFlag}` +
+        ` src=${chapters.length}`,
+    );
+    if (toInsert.length > 0 && existingChapters.length > 0) {
+      const srcPath = chapters[0].path;
+      const dbPath = existingChapters[0].path;
+      console.log(
+        `[updateNovelChapters] PATH MISMATCH?\n` +
+          `  DB:  "${dbPath}"\n` +
+          `  SRC: "${srcPath}"\n` +
+          `  MATCH: ${existingMap.has(srcPath)}`,
+      );
+    }
+
+    // ═══ DELETE LOGIC ═══
+    // Only delete if:
+    // - Not first population (we have existing data to compare against)
+    // - Not a skip-update call (first-time page fetch)
+    // - Source returned chapters (empty source = possible network error, don't delete)
+    const toDelete: number[] = [];
+    if (!isFirstPopulation && !skipUpdateFlag && chapters.length > 0) {
+      const fetchedPaths = new Set(chapters.map(c => c.path));
+
+      if (page) {
+        // Page is provided (scoped query) — safe to compare directly
+        for (const existing of existingChapters) {
+          if (!fetchedPaths.has(existing.path)) {
+            // Only delete if no user data
+            if (
+              existing.unread &&
+              !existing.bookmark &&
+              !existing.isDownloaded
+            ) {
+              toDelete.push(existing.id);
+            }
+          }
+        }
+      } else {
+        // Page is NOT provided (Base plugin, queried ALL chapters)
+        // Cross-page protection: only delete within page groups that are in the source
+        const sourcePages = new Set(chapters.map(c => c.page || '1'));
+        for (const existing of existingChapters) {
+          const existingPage = existing.page || '1';
+          if (!sourcePages.has(existingPage)) {
+            continue; // Skip chapters from pages not represented in source
+          }
+          if (!fetchedPaths.has(existing.path)) {
+            // Only delete if no user data
+            if (
+              existing.unread &&
+              !existing.bookmark &&
+              !existing.isDownloaded
+            ) {
+              toDelete.push(existing.id);
+            }
+          }
+        }
+      }
+    }
+
     // Assign dateFetch with offset for correct ordering (like Mihon: nowMillis + itemCount--)
-    // Only for truly new chapters, skip on first population and if not in library
-    if (!isFirstPopulation && inLibrary && toInsert.length > 0) {
+    // Only for truly new chapters, skip on first population, if not in library, or if skipUpdateFlag is set
+    if (
+      !isFirstPopulation &&
+      !skipUpdateFlag &&
+      inLibrary &&
+      toInsert.length > 0
+    ) {
       const nowMs = Date.now();
       let itemCount = toInsert.length;
       for (const item of toInsert) {
@@ -222,7 +311,7 @@ const updateNovelChapters = async (
         }
       }
       // Force UI refresh
-      if (inLibrary) {
+      if (inLibrary && !skipUpdateFlag) {
         MMKVStorage.set(
           NOVEL_UPDATE_RANDOM_KEY,
           Math.random().toString(36).substring(2, 15),
@@ -250,6 +339,30 @@ const updateNovelChapters = async (
           .run();
       }
     }
+
+    if (toDelete.length > 0) {
+      // Cleanup downloaded files before deleting from DB
+      for (const chapterId of toDelete) {
+        const chapterDir = `${NOVEL_STORAGE}/${pluginId}/${novelId}/${chapterId}`;
+        if (NativeFile.exists(chapterDir)) {
+          NativeFile.unlink(chapterDir);
+        }
+      }
+      // Delete from DB in chunks
+      const CHUNK_SIZE = 500;
+      for (let i = 0; i < toDelete.length; i += CHUNK_SIZE) {
+        const chunk = toDelete.slice(i, i + CHUNK_SIZE);
+        await tx
+          .delete(chapterSchema)
+          .where(
+            and(
+              inArray(chapterSchema.id, chunk),
+              eq(chapterSchema.novelId, novelId),
+            ),
+          )
+          .run();
+      }
+    }
   });
 };
 
@@ -258,18 +371,14 @@ export interface UpdateNovelOptions {
   refreshNovelMetadata?: boolean;
 }
 
-const getStoredTotalPages = async (novelId: number): Promise<number> => {
-  const result = await dbManager
-    .select({ totalPages: novelSchema.totalPages })
-    .from(novelSchema)
-    .where(eq(novelSchema.id, novelId))
-    .get();
-
-  return result?.totalPages ?? 0;
-};
-
 /**
  * Main function to update a novel's metadata and chapters.
+ *
+ * For Base plugins (totalPages=0): parseNovel() returns ALL chapters.
+ *   updateNovelChapters is called once with page=undefined → queries all chapters.
+ *
+ * For Page plugins (totalPages>1): parseNovel() returns page 1 chapters.
+ *   updateNovelChapters is called once per page with page=string → scoped queries.
  */
 const updateNovel = async (
   pluginId: string,
@@ -282,8 +391,6 @@ const updateNovel = async (
   }
   const { downloadNewChapters, refreshNovelMetadata } = options;
 
-  const oldTotalPages = await getStoredTotalPages(novelId);
-
   const novel = await fetchNovel(pluginId, novelPath);
 
   if (refreshNovelMetadata) {
@@ -292,47 +399,79 @@ const updateNovel = async (
     await updateNovelNecessaryInfo(novelId, novel);
   }
 
+  // ═══ Page 1 / Base chapters: always update ═══
+  // For Base plugins: this contains ALL chapters (page=undefined → query all)
+  // For Page plugins: this contains only page 1 chapters (page=undefined → query all,
+  //   but cross-page protection prevents deleting pages 2+)
   await updateNovelChapters(
+    pluginId,
     novel.name,
     novelId,
     novel.chapters || [],
     downloadNewChapters,
   );
 
-  // For paged novels: re-fetch the last known page and fetch any new pages
+  // ═══ Paged novels: handle remaining pages ═══
   if (novel.totalPages && novel.totalPages > 1) {
     const plugin = getPlugin(pluginId);
     if (plugin?.parsePage) {
-      // Re-fetch the last known page to check for new chapters
-      if (oldTotalPages > 1) {
+      // Get the set of pages already fetched (from actual DB chapter data)
+      const fetchedPageRows = await dbManager
+        .select({ page: chapterSchema.page })
+        .from(chapterSchema)
+        .where(eq(chapterSchema.novelId, novelId))
+        .groupBy(chapterSchema.page)
+        .all();
+      const fetchedPages = new Set(
+        fetchedPageRows.map(r => r.page).filter(Boolean),
+      );
+
+      // Find the last fetched page (highest numeric page in DB)
+      const numericPages = Array.from(fetchedPages)
+        .map(Number)
+        .filter(n => !isNaN(n));
+      const lastFetchedPage =
+        numericPages.length > 0 ? Math.max(...numericPages) : 1;
+
+      // Re-fetch the last known page to check for new chapters there
+      if (lastFetchedPage > 1) {
         try {
           const sourcePage = await fetchPage(
             pluginId,
             novelPath,
-            String(oldTotalPages),
+            String(lastFetchedPage),
           );
           await updateNovelChapters(
+            pluginId,
             novel.name,
             novelId,
             sourcePage.chapters || [],
             downloadNewChapters,
-            String(oldTotalPages),
+            String(lastFetchedPage),
+            // NOT skipped: detect new chapters + remove deleted ones
           );
-        } catch { }
+        } catch {}
       }
 
-      // Fetch any new pages that were added
-      for (let page = oldTotalPages + 1; page <= novel.totalPages; page++) {
+      // Fetch pages that have never been fetched before
+      for (let p = 2; p <= novel.totalPages; p++) {
+        const pageStr = String(p);
+        if (fetchedPages.has(pageStr)) {
+          continue; // Already fetched; last page was re-fetched above
+        }
         try {
-          const sourcePage = await fetchPage(pluginId, novelPath, String(page));
+          const sourcePage = await fetchPage(pluginId, novelPath, pageStr);
+          // First-time page fetch → skip dateFetch (not a real update)
           await updateNovelChapters(
+            pluginId,
             novel.name,
             novelId,
             sourcePage.chapters || [],
             downloadNewChapters,
-            String(page),
+            pageStr,
+            true, // skipUpdateFlag: first-time page fetch
           );
-        } catch { }
+        } catch {}
       }
     }
   }
@@ -353,6 +492,7 @@ const updateNovelPage = async (
   const sourcePage = await fetchPage(pluginId, novelPath, page);
 
   await updateNovelChapters(
+    pluginId,
     novelName,
     novelId,
     sourcePage.chapters || [],

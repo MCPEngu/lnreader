@@ -12,6 +12,14 @@ import { chapterSchema } from '@database/schema';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
 import NativeFile from '@specs/NativeFile';
 import { eq } from 'drizzle-orm';
+import { TranslateManager } from '@services/translate/TranslateManager';
+import { getMMKVObject } from '@utils/mmkv/mmkv';
+import {
+  TRANSLATE_SETTINGS,
+  TranslateSettings,
+  initialTranslateSettings,
+} from '@hooks/persisted/useSettings';
+import { showToast } from '@utils/showToast';
 
 const createChapterFolder = async (
   path: string,
@@ -87,7 +95,36 @@ export const downloadChapter = async (
   }
   const chapterText = await plugin.parseChapter(chapter.path);
   if (chapterText && chapterText.length) {
-    await downloadFiles(chapterText, plugin, novel.id, chapter.id);
+    let finalHtml = chapterText;
+
+    const translateSettings =
+      getMMKVObject<TranslateSettings>(TRANSLATE_SETTINGS) ||
+      initialTranslateSettings;
+
+    if (translateSettings.downloadTranslated) {
+      try {
+        finalHtml = await TranslateManager.translateChapterHTML(
+          finalHtml,
+          translateSettings as any,
+        );
+        const loadedCheerio = cheerio.load(finalHtml, null, false);
+        const metaHTML = '<meta id="offline-translated-marker"/>';
+        // Ensure body exists or prepend to whatever root cheerio has
+        if (loadedCheerio('body').length > 0) {
+          loadedCheerio('body').prepend(metaHTML);
+        } else {
+          loadedCheerio.root().prepend(metaHTML);
+        }
+        finalHtml = loadedCheerio.html();
+      } catch (e) {
+        console.error(e);
+        showToast('Error when translating chapter ' + chapter.name);
+        // fallback to original html
+        finalHtml = chapterText;
+      }
+    }
+
+    await downloadFiles(finalHtml, plugin, novel.id, chapter.id);
 
     await dbManager.write(async tx => {
       tx.update(chapterSchema)
